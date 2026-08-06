@@ -112,12 +112,20 @@ export default function Navbar() {
 
         <button
           type="button"
-          className="flex h-11 w-11 items-center justify-center rounded-2xl border border-[rgba(212,175,55,0.2)] text-paper-cream transition-all duration-300 hover:border-route-yellow hover:text-route-yellow lg:hidden"
+          className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl border border-[rgba(212,175,55,0.2)] bg-[rgba(212,175,55,0.05)] text-paper-cream transition-all duration-300 hover:border-route-yellow hover:bg-[rgba(212,175,55,0.1)] lg:hidden"
           aria-label={open ? 'Close menu' : 'Open menu'}
           aria-expanded={open}
           onClick={() => setOpen((v) => !v)}
         >
-          <span className="font-display text-lg">{open ? '✕' : '☰'}</span>
+          {open ? (
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#F9F6F0" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M18 6L6 18M6 6l12 12" />
+            </svg>
+          ) : (
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#F9F6F0" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M4 6h16M4 12h16M4 18h16" />
+            </svg>
+          )}
         </button>
       </div>
 

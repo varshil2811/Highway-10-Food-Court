@@ -45,12 +45,12 @@ export default function ExitSection({
       className={`relative ${isAlt ? 'bg-surface text-paper-cream' : 'bg-asphalt text-paper-cream'}`}
     >
       <div className={`mx-auto max-w-6xl px-4 py-20 md:px-8 md:py-28 md:pl-20 ${className}`}>
-        <motion.div variants={reduce ? undefined : childVariant} className="mb-12 flex flex-col gap-3 sm:flex-row sm:items-end sm:gap-5">
-          <div className="font-display text-[11px] font-semibold uppercase tracking-[0.32em] text-route-yellow">
+        <motion.div variants={reduce ? undefined : childVariant} className="mb-12 flex flex-row items-end gap-3 sm:gap-5">
+          <div className="font-display text-[11px] font-semibold uppercase tracking-[0.32em] text-route-yellow whitespace-nowrap mb-1.5 sm:mb-2">
             Exit {String(exit).padStart(2, '0')}
           </div>
-          <div className="hidden h-px flex-1 bg-[rgba(212,175,55,0.2)] sm:block" />
-          <h2 className="font-serif text-3xl font-bold tracking-tight md:text-4xl lg:text-[2.75rem]">
+          <div className="h-px flex-1 bg-[rgba(212,175,55,0.2)] mb-2.5 sm:mb-3" />
+          <h2 className="font-serif text-3xl font-bold tracking-tight md:text-4xl lg:text-[2.75rem] text-right">
             {title}
           </h2>
         </motion.div>
@@ -62,21 +62,3 @@ export default function ExitSection({
   )
 }
 
-export function useOpenNow() {
-  const [open, setOpen] = useState(true)
-
-  useEffect(() => {
-    const check = () => {
-      const now = new Date()
-      const mins = now.getHours() * 60 + now.getMinutes()
-      const openStart = 11 * 60
-      const openEnd = 1 * 60
-      setOpen(mins >= openStart || mins < openEnd)
-    }
-    check()
-    const id = setInterval(check, 60_000)
-    return () => clearInterval(id)
-  }, [])
-
-  return open
-}

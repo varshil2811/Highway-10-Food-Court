@@ -15,9 +15,16 @@ type Props = {
 export default function GalleryGrid({ items, categories }: Props) {
   const [tab, setTab] = useState<string>('All')
   const [active, setActive] = useState<GalleryItem | null>(null)
+  const [expanded, setExpanded] = useState<boolean>(false)
   const reduce = useReducedMotion()
 
+  useEffect(() => {
+    setExpanded(false)
+  }, [tab])
+
   const filtered = tab === 'All' ? items : items.filter((i) => i.category === tab)
+  const hasMore = filtered.length > 6
+  const displayedItems = (hasMore && !expanded) ? filtered.slice(0, 6) : filtered
 
   useEffect(() => {
     if (!active) return
@@ -55,28 +62,43 @@ export default function GalleryGrid({ items, categories }: Props) {
         ))}
       </div>
 
-      <motion.div layout className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
+      <motion.div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
         <AnimatePresence>
-          {filtered.map((item) => (
-            <motion.button
-              layout
-              initial={{ opacity: 0, scale: 0.95 }}
-              animate={{ opacity: 1, scale: 1 }}
-              exit={{ opacity: 0, scale: 0.95 }}
-              transition={{ duration: 0.3 }}
-              key={item._id + item.category + tab}
-              type="button"
-              onClick={() => setActive(item)}
-              className="group block w-full overflow-hidden rounded-[1.125rem] border border-[rgba(255,255,255,0.08)] text-left shadow-[0_12px_40px_-10px_rgba(0,0,0,0.5)] transition-all duration-500 hover:scale-[1.02] hover:border-[rgba(212,175,55,0.35)] hover:shadow-[0_8px_30px_-10px_rgba(212,175,55,0.3)]"
-            >
-              <img
-                src={item.src}
-                alt={item.alt}
-                className="aspect-video w-full object-cover transition-transform duration-700 ease-out group-hover:scale-[1.02]"
-                loading="lazy"
-              />
-            </motion.button>
-          ))}
+          {displayedItems.map((item, index) => {
+            const isLastVisible = !expanded && hasMore && index === 5
+            return (
+              <motion.button
+                initial={{ opacity: 0, scale: 0.95 }}
+                animate={{ opacity: 1, scale: 1 }}
+                exit={{ opacity: 0, scale: 0.95 }}
+                transition={{ duration: 0.3 }}
+                key={item._id + item.category + tab + index}
+                type="button"
+                onClick={() => {
+                  if (isLastVisible) {
+                    setExpanded(true)
+                  } else {
+                    setActive(item)
+                  }
+                }}
+                className="group relative block w-full overflow-hidden rounded-[1.125rem] border border-[rgba(255,255,255,0.08)] text-left shadow-[0_12px_40px_-10px_rgba(0,0,0,0.5)] transition-all duration-500 hover:scale-[1.02] hover:border-[rgba(212,175,55,0.35)] hover:shadow-[0_8px_30px_-10px_rgba(212,175,55,0.3)]"
+              >
+                <img
+                  src={item.src}
+                  alt={item.alt}
+                  className="aspect-video w-full object-cover transition-transform duration-700 ease-out group-hover:scale-[1.02]"
+                  loading="lazy"
+                />
+                {isLastVisible && (
+                  <div className="absolute inset-0 flex items-center justify-center bg-asphalt/70 backdrop-blur-[2px] transition-colors duration-300 group-hover:bg-asphalt/60">
+                    <span className="font-display text-3xl font-bold tracking-wider text-paper-cream">
+                      +{filtered.length - 5}
+                    </span>
+                  </div>
+                )}
+              </motion.button>
+            )
+          })}
         </AnimatePresence>
       </motion.div>
 

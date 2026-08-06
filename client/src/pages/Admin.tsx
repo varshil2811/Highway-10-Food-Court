@@ -82,6 +82,9 @@ export default function Admin() {
     veg: false, jain: false, bestseller: false, price: '₹ —',
   })
 
+  const menuFormRef = useRef<HTMLDivElement>(null)
+  const galleryFormRef = useRef<HTMLDivElement>(null)
+
   // Gallery Form
   const [galleryForm, setGalleryForm] = useState({
     alt: '', category: '', file: null as File | null
@@ -143,7 +146,9 @@ export default function Admin() {
       category: item.category, veg: item.veg, jain: item.jain,
       bestseller: item.bestseller, price: item.price || '₹ —',
     })
-    window.scrollTo({ top: 0, behavior: 'smooth' })
+    setTimeout(() => {
+      menuFormRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' })
+    }, 100)
   }
 
   function handleMenuCancelEdit() {
@@ -386,7 +391,7 @@ export default function Admin() {
 
   if (!isAuthenticated) {
     return (
-      <ExitSection exit={0} title="Admin Login" tone="dark" className="!pt-12 md:!pt-20">
+      <ExitSection exit={0} title="Admin Login" tone="dark" className="!pt-28 md:!pt-36">
         <div className="mx-auto max-w-sm">
           <form onSubmit={(e) => { e.preventDefault(); if (password) setIsAuthenticated(true) }} className="lux-card">
             <h3 className="mb-4 font-serif text-xl font-bold tracking-tight text-route-yellow">
@@ -405,7 +410,7 @@ export default function Admin() {
   return (
     <>
       <Seo title="Admin Panel" path="/admin" />
-      <ExitSection exit={0} title="Administration" tone="dark" className="!pt-8 md:!pt-12">
+      <ExitSection exit={0} title="Administration" tone="dark" className="!pt-28 md:!pt-36">
 
         <div className="mb-10 inline-flex rounded-xl bg-[rgba(212,175,55,0.03)] p-1.5 border border-[rgba(212,175,55,0.1)] shadow-inner">
           <button
@@ -430,7 +435,7 @@ export default function Admin() {
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: -10 }}
               transition={{ duration: 0.3 }}
-              className="flex flex-col-reverse gap-8 lg:grid lg:grid-cols-[1fr_400px]"
+              className="flex flex-col gap-8 lg:grid lg:grid-cols-[1fr_400px]"
             >
               <div>
                 <div className="mb-5 flex items-center justify-between">
@@ -443,7 +448,6 @@ export default function Admin() {
                     <AnimatePresence>
                       {menuItems.map(item => (
                         <motion.div
-                          layout
                           initial={{ opacity: 0, scale: 0.95 }}
                           animate={{ opacity: 1, scale: 1 }}
                           exit={{ opacity: 0, scale: 0.95 }}
@@ -468,7 +472,7 @@ export default function Admin() {
                   </div>
                 )}
               </div>
-              <aside className="lg:sticky lg:top-24 lg:self-start space-y-6">
+              <aside className="lg:sticky lg:top-24 lg:self-start space-y-6" ref={menuFormRef}>
                 <div className="lux-card">
                   <h3 className="mb-5 font-serif text-xl font-bold tracking-tight text-route-yellow">
                     {editingMenu ? 'Edit Item' : 'Add Menu Item'}
@@ -570,7 +574,7 @@ export default function Admin() {
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: -10 }}
               transition={{ duration: 0.3 }}
-              className="flex flex-col-reverse gap-8 lg:grid lg:grid-cols-[1fr_400px]"
+              className="flex flex-col gap-8 lg:grid lg:grid-cols-[1fr_400px]"
             >
               <div>
                 <div className="mb-5 flex items-center justify-between">
@@ -600,7 +604,6 @@ export default function Admin() {
                     <AnimatePresence>
                       {filteredGalleryItems.map(item => (
                         <motion.div
-                          layout
                           initial={{ opacity: 0, scale: 0.95 }}
                           animate={{ opacity: 1, scale: 1 }}
                           exit={{ opacity: 0, scale: 0.95 }}
@@ -633,7 +636,7 @@ export default function Admin() {
                   </div>
                 )}
               </div>
-              <aside className="lg:sticky lg:top-24 lg:self-start space-y-6">
+              <aside className="lg:sticky lg:top-24 lg:self-start space-y-6" ref={galleryFormRef}>
                 <div className="lux-card">
                   <h3 className="mb-5 font-serif text-xl font-bold tracking-tight text-route-yellow">
                     Upload Image

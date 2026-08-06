@@ -77,7 +77,7 @@ export default function Reserve() {
         description="Reserve a table or send a message to Highway 10 Food Court, Jamnagar. We'll call to confirm."
         path="/reserve"
       />
-      <ExitSection exit={3} title="Reserve / Contact" tone="light" className="!pt-8 md:!pt-12">
+      <ExitSection exit={3} title="Reserve / Contact" tone="light" className="!pt-28 md:!pt-36">
         <p className="mb-10 max-w-2xl text-sm leading-relaxed text-dusk-grey">
           Food court seating — we&apos;ll call to confirm your preferred time. For same-day large
           groups, WhatsApp or call works fastest.

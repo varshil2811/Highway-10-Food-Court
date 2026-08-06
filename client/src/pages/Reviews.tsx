@@ -12,7 +12,7 @@ export default function Reviews() {
         description={`★ ${site.rating} from ${site.reviewCount.toLocaleString()} reviews — what visitors say about Highway 10 Food Court, Jamnagar.`}
         path="/reviews"
       />
-      <ExitSection exit={5} title="Reviews" tone="light" className="!pt-8 md:!pt-12">
+      <ExitSection exit={5} title="Reviews" tone="light" className="!pt-28 md:!pt-36">
         <div className="lux-card mb-10 flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
           <div>
             <div className="font-serif text-5xl font-bold tracking-tight text-route-yellow">

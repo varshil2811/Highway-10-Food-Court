@@ -68,7 +68,7 @@ export default function Menu() {
         path="/menu"
       />
 
-      <ExitSection exit={1} title="Menu" tone="light" className="!pt-8 md:!pt-12">
+      <ExitSection exit={1} title="Menu" tone="light" className="!pt-28 md:!pt-36">
         <p className="mb-8 max-w-2xl text-sm leading-relaxed text-dusk-grey">
           Multi-brand food court — pricing may vary slightly by counter. Prices marked ₹ — until
           counters confirm current rates.
@@ -97,7 +97,7 @@ export default function Menu() {
         <div className="grid gap-8 lg:grid-cols-[240px_1fr] xl:grid-cols-[260px_1fr]">
           {/* Sidebar filters */}
           <aside className="lg:sticky lg:top-24 lg:self-start">
-            <div className="lux-card !p-4 md:!p-5">
+            <div className="lux-card !p-4 md:!p-5 hidden lg:block">
               <div className="flex items-center gap-2">
                 <svg
                   width="14"
@@ -128,8 +128,8 @@ export default function Menu() {
                         type="button"
                         onClick={() => setStall(s.id)}
                         className={`w-full rounded-xl px-3 py-2.5 text-left font-body text-sm transition-all duration-300 ${active
-                            ? 'bg-[rgba(212,175,55,0.15)] font-medium text-route-yellow'
-                            : 'text-dusk-grey hover:bg-[rgba(212,175,55,0.06)] hover:text-paper-cream'
+                          ? 'bg-[rgba(212,175,55,0.15)] font-medium text-route-yellow'
+                          : 'text-dusk-grey hover:bg-[rgba(212,175,55,0.06)] hover:text-paper-cream'
                           }`}
                       >
                         {s.name}
@@ -152,8 +152,8 @@ export default function Menu() {
                         type="button"
                         onClick={() => setCategory(c.id)}
                         className={`rounded-full px-3.5 py-1.5 font-display text-xs font-semibold transition-all duration-300 ${active
-                            ? 'bg-route-yellow text-ink shadow-[0_8px_24px_rgba(212,175,55,0.25)]'
-                            : 'border border-[rgba(212,175,55,0.2)] text-dusk-grey hover:border-route-yellow hover:text-route-yellow'
+                          ? 'bg-route-yellow text-ink shadow-[0_8px_24px_rgba(212,175,55,0.25)]'
+                          : 'border border-[rgba(212,175,55,0.2)] text-dusk-grey hover:border-route-yellow hover:text-route-yellow'
                           }`}
                       >
                         {c.name}
@@ -165,20 +165,44 @@ export default function Menu() {
             </div>
 
             {/* Mobile: stall chips when sidebar stacks */}
-            <div className="mt-4 flex gap-2 overflow-x-auto pb-1 lg:hidden">
-              {stalls.map((s) => (
-                <button
-                  key={`m-${s.id}`}
-                  type="button"
-                  onClick={() => setStall(s.id)}
-                  className={`shrink-0 rounded-full px-3.5 py-1.5 font-display text-xs font-semibold transition-all duration-300 ${stall === s.id
-                      ? 'bg-route-yellow text-ink'
-                      : 'border border-[rgba(212,175,55,0.2)] text-dusk-grey'
-                    }`}
-                >
-                  {s.name}
-                </button>
-              ))}
+            <div className="mt-4 flex flex-col gap-5 lg:hidden">
+              <div>
+                <h3 className="mb-3 font-display text-[11px] font-semibold uppercase tracking-[0.2em] text-route-yellow">Stall</h3>
+                <div className="flex flex-wrap gap-2">
+                  {stalls.map((s) => (
+                    <button
+                      key={`m-${s.id}`}
+                      type="button"
+                      onClick={() => setStall(s.id)}
+                      className={`min-h-[44px] flex items-center justify-center rounded-full px-4 py-2 font-display text-sm font-semibold transition-all duration-300 ${stall === s.id
+                        ? 'bg-route-yellow text-ink shadow-[0_8px_24px_rgba(212,175,55,0.25)]'
+                        : 'border border-[rgba(212,175,55,0.2)] text-dusk-grey hover:border-route-yellow hover:text-route-yellow'
+                        }`}
+                    >
+                      {s.name}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              <div>
+                <h3 className="mb-3 font-display text-[11px] font-semibold uppercase tracking-[0.2em] text-route-yellow">Category</h3>
+                <div className="flex flex-wrap gap-2">
+                  {categories.map((c) => (
+                    <button
+                      key={`mc-${c.id}`}
+                      type="button"
+                      onClick={() => setCategory(c.id)}
+                      className={`min-h-[44px] flex items-center justify-center rounded-full px-4 py-2 font-display text-sm font-semibold transition-all duration-300 ${category === c.id
+                        ? 'bg-route-yellow text-ink shadow-[0_8px_24px_rgba(212,175,55,0.25)]'
+                        : 'border border-[rgba(212,175,55,0.2)] text-dusk-grey hover:border-route-yellow hover:text-route-yellow'
+                        }`}
+                    >
+                      {c.name}
+                    </button>
+                  ))}
+                </div>
+              </div>
             </div>
           </aside>
 

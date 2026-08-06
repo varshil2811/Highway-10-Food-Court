@@ -25,10 +25,10 @@ export default function MenuCard({ name, description, veg, jain, price, bestsell
 
         <div className="min-w-0 flex-1">
           <div className="flex items-start justify-between gap-3">
-            <h3 className="font-display text-base font-bold leading-snug tracking-tight text-paper-cream md:text-lg">
+            <h3 className="font-display text-base font-bold leading-snug tracking-tight text-paper-cream md:text-lg break-words">
               {name}
             </h3>
-            <span className="shrink-0 font-body text-sm font-semibold text-route-yellow">{price}</span>
+            <span className="shrink-0 font-body text-sm font-semibold text-route-yellow whitespace-nowrap">{price}</span>
           </div>
           {description && (
             <p className="mt-1.5 line-clamp-2 text-xs leading-relaxed text-dusk-grey md:text-sm">
