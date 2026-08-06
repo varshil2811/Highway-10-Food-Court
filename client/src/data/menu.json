@@ -1,0 +1,339 @@
+{
+  "stalls": [
+    { "id": "all", "name": "All Stalls" },
+    { "id": "mexican-rodeo", "name": "Mexican Rodeo" },
+    { "id": "kulchas", "name": "Kulchas" },
+    { "id": "nimbu-mircha", "name": "Nimbu Mircha" },
+    { "id": "changas-chai", "name": "Changa's Chai" },
+    { "id": "south-carving", "name": "South Carving" },
+    { "id": "dayaro", "name": "Dayaro" },
+    { "id": "coffee-culture", "name": "Coffee Culture" }
+  ],
+  "categories": [
+    { "id": "all", "name": "All" },
+    { "id": "veg", "name": "Veg" },
+    { "id": "beverages", "name": "Beverages" },
+    { "id": "desserts", "name": "Desserts" }
+  ],
+  "items": [
+    {
+      "id": "amritsari-kulcha",
+      "name": "Amritsari Kulcha",
+      "description": "Stuffed kulcha with chole and pickled onions",
+      "stall": "kulchas",
+      "category": "veg",
+      "veg": true,
+      "jain": false,
+      "bestseller": true,
+      "price": "₹ —"
+    },
+    {
+      "id": "paneer-kulcha",
+      "name": "Paneer Kulcha",
+      "description": "Soft kulcha filled with spiced cottage cheese",
+      "stall": "kulchas",
+      "category": "veg",
+      "veg": true,
+      "jain": false,
+      "bestseller": false,
+      "price": "₹ —"
+    },
+    {
+      "id": "aloo-kulcha",
+      "name": "Aloo Kulcha",
+      "description": "Classic potato-stuffed kulcha, roadside favourite",
+      "stall": "kulchas",
+      "category": "veg",
+      "veg": true,
+      "jain": false,
+      "bestseller": true,
+      "price": "₹ —"
+    },
+    {
+      "id": "veg-frankie",
+      "name": "Veg Frankie Roll",
+      "description": "Grilled wrap with mixed veggies and house sauce",
+      "stall": "kulchas",
+      "category": "veg",
+      "veg": true,
+      "jain": false,
+      "bestseller": false,
+      "price": "₹ —"
+    },
+    {
+      "id": "paneer-tikka-roll",
+      "name": "Paneer Tikka Roll",
+      "description": "Smoky paneer tikka wrapped in a soft roti",
+      "stall": "kulchas",
+      "category": "veg",
+      "veg": true,
+      "jain": false,
+      "bestseller": false,
+      "price": "₹ —"
+    },
+    {
+      "id": "masala-dosa",
+      "name": "Masala Dosa",
+      "description": "Crispy dosa with potato masala, chutney & sambar",
+      "stall": "south-carving",
+      "category": "veg",
+      "veg": true,
+      "jain": false,
+      "bestseller": true,
+      "price": "₹ —"
+    },
+    {
+      "id": "cheese-dosa",
+      "name": "Cheese Dosa",
+      "description": "Golden dosa layered with melted cheese",
+      "stall": "south-carving",
+      "category": "veg",
+      "veg": true,
+      "jain": false,
+      "bestseller": false,
+      "price": "₹ —"
+    },
+    {
+      "id": "onion-rava-dosa",
+      "name": "Onion Rava Dosa",
+      "description": "Crisp rava dosa with caramelised onions",
+      "stall": "south-carving",
+      "category": "veg",
+      "veg": true,
+      "jain": false,
+      "bestseller": false,
+      "price": "₹ —"
+    },
+    {
+      "id": "idli-sambar",
+      "name": "Idli Sambar",
+      "description": "Steamed rice cakes with hot sambar",
+      "stall": "south-carving",
+      "category": "veg",
+      "veg": true,
+      "jain": true,
+      "bestseller": false,
+      "price": "₹ —"
+    },
+    {
+      "id": "medu-vada",
+      "name": "Medu Vada",
+      "description": "Crispy lentil doughnuts, served with chutney",
+      "stall": "south-carving",
+      "category": "veg",
+      "veg": true,
+      "jain": true,
+      "bestseller": false,
+      "price": "₹ —"
+    },
+    {
+      "id": "pav-bhaji",
+      "name": "Pav Bhaji",
+      "description": "Buttery pav with thick spiced vegetable mash",
+      "stall": "nimbu-mircha",
+      "category": "veg",
+      "veg": true,
+      "jain": false,
+      "bestseller": true,
+      "price": "₹ —"
+    },
+    {
+      "id": "sev-puri",
+      "name": "Sev Puri",
+      "description": "Crisp puris topped with sev, chutneys & onion",
+      "stall": "nimbu-mircha",
+      "category": "veg",
+      "veg": true,
+      "jain": false,
+      "bestseller": false,
+      "price": "₹ —"
+    },
+    {
+      "id": "samosa-chaat",
+      "name": "Samosa Chaat",
+      "description": "Crushed samosa with chutney, curd & spices",
+      "stall": "nimbu-mircha",
+      "category": "veg",
+      "veg": true,
+      "jain": false,
+      "bestseller": false,
+      "price": "₹ —"
+    },
+    {
+      "id": "bhel-puri",
+      "name": "Bhel Puri",
+      "description": "Puffed rice tossed with tangy street chutneys",
+      "stall": "nimbu-mircha",
+      "category": "veg",
+      "veg": true,
+      "jain": false,
+      "bestseller": false,
+      "price": "₹ —"
+    },
+    {
+      "id": "french-fries",
+      "name": "French Fries",
+      "description": "Crispy salted fries — shareable highway snack",
+      "stall": "mexican-rodeo",
+      "category": "veg",
+      "veg": true,
+      "jain": true,
+      "bestseller": true,
+      "price": "₹ —"
+    },
+    {
+      "id": "veg-soft-tacos",
+      "name": "Veg Soft Tacos",
+      "description": "Soft tortillas with spiced filling & salsa",
+      "stall": "mexican-rodeo",
+      "category": "veg",
+      "veg": true,
+      "jain": false,
+      "bestseller": true,
+      "price": "₹ —"
+    },
+    {
+      "id": "paneer-wrap",
+      "name": "Paneer Wrap",
+      "description": "Grilled paneer wrap with fresh greens",
+      "stall": "mexican-rodeo",
+      "category": "veg",
+      "veg": true,
+      "jain": false,
+      "bestseller": false,
+      "price": "₹ —"
+    },
+    {
+      "id": "loaded-nachos",
+      "name": "Loaded Nachos",
+      "description": "Crisp nachos with cheese, salsa & jalapeños",
+      "stall": "mexican-rodeo",
+      "category": "veg",
+      "veg": true,
+      "jain": false,
+      "bestseller": true,
+      "price": "₹ —"
+    },
+    {
+      "id": "veg-burger",
+      "name": "Veg Burger",
+      "description": "Toasted bun, veg patty, lettuce & house sauce",
+      "stall": "mexican-rodeo",
+      "category": "veg",
+      "veg": true,
+      "jain": false,
+      "bestseller": false,
+      "price": "₹ —"
+    },
+    {
+      "id": "pasta-arrabbiata",
+      "name": "Pasta Arrabbiata",
+      "description": "Penna in a spicy tomato chili sauce",
+      "stall": "dayaro",
+      "category": "veg",
+      "veg": true,
+      "jain": true,
+      "bestseller": false,
+      "price": "₹ —"
+    },
+    {
+      "id": "filter-coffee",
+      "name": "Filter Coffee",
+      "description": "South Indian filter coffee, strong & aromatic",
+      "stall": "coffee-culture",
+      "category": "beverages",
+      "veg": true,
+      "jain": true,
+      "bestseller": true,
+      "price": "₹ —"
+    },
+    {
+      "id": "cold-coffee",
+      "name": "Cold Coffee",
+      "description": "Chilled blended coffee for hot highway days",
+      "stall": "coffee-culture",
+      "category": "beverages",
+      "veg": true,
+      "jain": true,
+      "bestseller": false,
+      "price": "₹ —"
+    },
+    {
+      "id": "masala-chai",
+      "name": "Masala Chai",
+      "description": "Spiced roadside chai, the classic pit-stop pour",
+      "stall": "changas-chai",
+      "category": "beverages",
+      "veg": true,
+      "jain": true,
+      "bestseller": true,
+      "price": "₹ —"
+    },
+    {
+      "id": "fresh-lime-soda",
+      "name": "Fresh Lime Soda",
+      "description": "Sweet, salty, or mixed — your call",
+      "stall": "changas-chai",
+      "category": "beverages",
+      "veg": true,
+      "jain": true,
+      "bestseller": false,
+      "price": "₹ —"
+    },
+    {
+      "id": "mocktail-special",
+      "name": "Mocktail Special",
+      "description": "Rotating house mocktails — ask the counter",
+      "stall": "coffee-culture",
+      "category": "beverages",
+      "veg": true,
+      "jain": true,
+      "bestseller": false,
+      "price": "₹ —"
+    },
+    {
+      "id": "gulab-jamun",
+      "name": "Gulab Jamun",
+      "description": "Warm milk dumplings in rose syrup",
+      "stall": "dayaro",
+      "category": "desserts",
+      "veg": true,
+      "jain": false,
+      "bestseller": true,
+      "price": "₹ —"
+    },
+    {
+      "id": "ice-cream",
+      "name": "Ice Cream Scoop",
+      "description": "Classic scoops — flavours rotate by season",
+      "stall": "dayaro",
+      "category": "desserts",
+      "veg": true,
+      "jain": false,
+      "bestseller": false,
+      "price": "₹ —"
+    },
+    {
+      "id": "brownie",
+      "name": "Brownie",
+      "description": "Warm chocolate brownie, best shared",
+      "stall": "dayaro",
+      "category": "desserts",
+      "veg": true,
+      "jain": false,
+      "bestseller": false,
+      "price": "₹ —"
+    },
+    {
+      "id": "falooda",
+      "name": "Falooda",
+      "description": "Rose milk, vermicelli, jelly & ice cream",
+      "stall": "dayaro",
+      "category": "desserts",
+      "veg": true,
+      "jain": false,
+      "bestseller": true,
+      "price": "₹ —"
+    }
+  ]
+}

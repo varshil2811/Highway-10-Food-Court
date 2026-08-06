@@ -1,0 +1,5 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" fill="none">
+  <rect width="64" height="64" rx="12" fill="#0B0B0B"/>
+  <path d="M32 6L54 18V46L32 58L10 46V18L32 6Z" fill="#D4AF37"/>
+  <text x="32" y="38" text-anchor="middle" font-family="Georgia, serif" font-size="14" font-weight="700" fill="#0B0B0B">H10</text>
+</svg>
