@@ -1,4 +1,7 @@
 import { useState, useEffect, type FormEvent, useRef } from 'react'
+import { useNavigate, useLocation } from 'react-router-dom'
+import ReservationsTab from '../components/ReservationsTab'
+import UsersTab from '../components/UsersTab'
 import { motion, AnimatePresence } from 'framer-motion'
 import Seo from '../components/Seo'
 import ExitSection from '../components/ExitSection'
@@ -54,10 +57,75 @@ type ReviewItem = {
   meta: string
 }
 
+type User = {
+  id: string
+  name: string
+  email: string
+  role: 'super_admin' | 'stall_owner'
+}
+
 export default function Admin() {
+  const navigate = useNavigate()
+  const location = useLocation()
+  const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
-  const [isAuthenticated, setIsAuthenticated] = useState(false)
-  const [activeTab, setActiveTab] = useState<'menu' | 'gallery' | 'reviews' | 'emails'>('menu')
+  const [token, setToken] = useState(localStorage.getItem('token') || '')
+  const [user, setUser] = useState<User | null>(
+    localStorage.getItem('user') ? JSON.parse(localStorage.getItem('user')!) : null
+  )
+  const [loginError, setLoginError] = useState('')
+  const isAuthenticated = !!token
+
+  const [activeTab, setActiveTab] = useState<'menu' | 'gallery' | 'reviews' | 'emails' | 'reservations' | 'users'>(
+    user?.role === 'stall_owner' ? 'reservations' : 'reservations'
+  )
+
+  useEffect(() => {
+    if (!isAuthenticated) {
+      if (location.pathname !== '/login') {
+        navigate('/login')
+      }
+    } else {
+      if (user?.role === 'super_admin' && location.pathname !== '/admin/dashboard') {
+        navigate('/admin/dashboard')
+      } else if (user?.role === 'stall_owner' && location.pathname !== '/stall-admin/dashboard') {
+        navigate('/stall-admin/dashboard')
+      }
+    }
+  }, [isAuthenticated, location.pathname, user?.role, navigate])
+
+  async function handleLogin(e: React.FormEvent) {
+    e.preventDefault()
+    setLoginError('')
+    try {
+      const res = await fetch('/api/auth/login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email, password })
+      })
+      const data = await res.json()
+      if (!res.ok) throw new Error(data.error || 'Failed to login')
+      
+      setToken(data.token)
+      setUser(data.user)
+      localStorage.setItem('token', data.token)
+      localStorage.setItem('user', JSON.stringify(data.user))
+      setActiveTab(data.user.role === 'stall_owner' ? 'reservations' : 'reservations')
+      
+      const redirectUrl = data.user.role === 'super_admin' ? '/admin/dashboard' : '/stall-admin/dashboard'
+      navigate(redirectUrl)
+    } catch (err) {
+      setLoginError(err instanceof Error ? err.message : 'Error logging in')
+    }
+  }
+
+  function handleLogout() {
+    setToken('')
+    setUser(null)
+    localStorage.removeItem('token')
+    localStorage.removeItem('user')
+    navigate('/login')
+  }
 
   const stallsScrollRef = useVerticalScroll<HTMLUListElement>()
   const categoriesScrollRef = useVerticalScroll<HTMLUListElement>()
@@ -132,7 +200,7 @@ export default function Admin() {
       if (activeTab === 'gallery') fetchGallery()
       if (activeTab === 'reviews') fetchReviews(true)
     }
-  }, [isAuthenticated, activeTab])
+  }, [isAuthenticated, activeTab, user])
 
   // Auto-poll reviews in the background when on the reviews tab
   useEffect(() => {
@@ -209,7 +277,7 @@ export default function Admin() {
 
       const res = await fetch(url, {
         method,
-        headers: { 'x-admin-password': password },
+        headers: { 'Authorization': `Bearer ${token}` },
         body: formData
       })
       if (!res.ok) {
@@ -235,7 +303,7 @@ export default function Admin() {
   async function handleMenuDelete(id: string) {
     if (!window.confirm('Are you sure you want to delete this menu item?')) return
     try {
-      const res = await fetch(`/api/menu/${id}`, { method: 'DELETE', headers: { 'x-admin-password': password } })
+      const res = await fetch(`/api/menu/${id}`, { method: 'DELETE', headers: { 'Authorization': `Bearer ${token}` } })
       if (!res.ok) throw new Error('Failed to delete')
       fetchMenu()
     } catch (err) {
@@ -248,7 +316,7 @@ export default function Admin() {
     try {
       const res = await fetch('/api/menu/metadata/stall', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json', 'x-admin-password': password },
+        headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
         body: JSON.stringify({
           id: newStallForm.name.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, ''),
           name: newStallForm.name
@@ -271,7 +339,7 @@ export default function Admin() {
     try {
       const res = await fetch('/api/menu/metadata/category', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json', 'x-admin-password': password },
+        headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
         body: JSON.stringify({
           id: newCategoryForm.name.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, ''),
           name: newCategoryForm.name
@@ -294,7 +362,7 @@ export default function Admin() {
     try {
       const res = await fetch(`/api/menu/metadata/stall/${id}`, {
         method: 'DELETE',
-        headers: { 'x-admin-password': password }
+        headers: { 'Authorization': `Bearer ${token}` }
       })
       if (res.ok) {
         fetchMetadata()
@@ -312,7 +380,7 @@ export default function Admin() {
     try {
       const res = await fetch(`/api/menu/metadata/category/${id}`, {
         method: 'DELETE',
-        headers: { 'x-admin-password': password }
+        headers: { 'Authorization': `Bearer ${token}` }
       })
       if (res.ok) {
         fetchMetadata()
@@ -330,7 +398,7 @@ export default function Admin() {
     try {
       const res = await fetch('/api/menu/metadata/galleryCategory', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json', 'x-admin-password': password },
+        headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
         body: JSON.stringify({
           id: newGalleryCategoryForm.name.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, ''),
           name: newGalleryCategoryForm.name
@@ -353,7 +421,7 @@ export default function Admin() {
     try {
       const res = await fetch(`/api/menu/metadata/galleryCategory/${id}`, {
         method: 'DELETE',
-        headers: { 'x-admin-password': password }
+        headers: { 'Authorization': `Bearer ${token}` }
       })
       if (res.ok) {
         fetchMetadata()
@@ -385,7 +453,7 @@ export default function Admin() {
   async function handleReviewDelete(id: string) {
     if (!window.confirm('Are you sure you want to delete this review?')) return
     try {
-      const res = await fetch(`/api/reviews/${id}`, { method: 'DELETE', headers: { 'x-admin-password': password } })
+      const res = await fetch(`/api/reviews/${id}`, { method: 'DELETE', headers: { 'Authorization': `Bearer ${token}` } })
       if (!res.ok) throw new Error('Failed to delete')
       fetchReviews()
     } catch (err) {
@@ -422,7 +490,7 @@ export default function Admin() {
 
       const res = await fetch('/api/gallery', {
         method: 'POST',
-        headers: { 'x-admin-password': password },
+        headers: { 'Authorization': `Bearer ${token}` },
         body: fd
       })
       if (!res.ok) {
@@ -450,7 +518,7 @@ export default function Admin() {
   async function handleGalleryDelete(id: string) {
     if (!window.confirm('Are you sure you want to delete this gallery image?')) return
     try {
-      const res = await fetch(`/api/gallery/${id}`, { method: 'DELETE', headers: { 'x-admin-password': password } })
+      const res = await fetch(`/api/gallery/${id}`, { method: 'DELETE', headers: { 'Authorization': `Bearer ${token}` } })
       if (!res.ok) throw new Error('Failed to delete')
       fetchGallery()
     } catch (err) {
@@ -481,12 +549,14 @@ export default function Admin() {
 
   if (!isAuthenticated) {
     return (
-      <ExitSection exit={0} title="Admin Login" tone="dark" className="!pt-28 md:!pt-36">
+      <ExitSection exit={0} title="Staff & Admin Login" tone="dark" className="!pt-28 md:!pt-36">
         <div className="mx-auto max-w-sm">
-          <form onSubmit={(e) => { e.preventDefault(); if (password) setIsAuthenticated(true) }} className="lux-card">
+          <form onSubmit={handleLogin} className="lux-card">
             <h3 className="mb-4 font-serif text-xl font-bold tracking-tight text-route-yellow">
-              Enter Admin Password
+              Secure Login
             </h3>
+            {loginError && <div className="mb-4 rounded-lg bg-red-900/20 p-3 text-sm text-red-400 border border-red-500/20">{loginError}</div>}
+            <input type="email" value={email} onChange={e => setEmail(e.target.value)} className="lux-input mb-4" placeholder="Email Address..." required />
             <input type="password" value={password} onChange={e => setPassword(e.target.value)} className="lux-input mb-4" placeholder="Password..." required />
             <button type="submit" className="btn-primary w-full">Login</button>
           </form>
@@ -502,31 +572,56 @@ export default function Admin() {
       <Seo title="Admin Panel" path="/admin" />
       <ExitSection exit={0} title="Administration" tone="dark" className="!pt-28 md:!pt-36">
 
-        <div className="mb-10 inline-flex rounded-xl bg-[rgba(212,175,55,0.03)] p-1.5 border border-[rgba(212,175,55,0.1)] shadow-inner">
-          <button
-            onClick={() => setActiveTab('menu')}
-            className={`rounded-lg px-6 py-2.5 font-display text-xs font-semibold uppercase tracking-wider transition-all duration-300 ${activeTab === 'menu' ? 'bg-[rgba(212,175,55,0.15)] text-route-yellow shadow-sm' : 'text-dusk-grey hover:text-paper-cream hover:bg-white/5'}`}
-          >
-            Menu Items
+        <div className="mb-4 flex flex-col md:flex-row md:items-center justify-between gap-4 rounded-xl bg-black/20 p-4 border border-[rgba(212,175,55,0.1)]">
+          <div className="text-sm text-paper-cream">
+            Logged in as <strong className="text-route-yellow">{user?.name}</strong> ({user?.role === 'super_admin' ? 'Super Admin' : 'Stall Owner'})
+          </div>
+          <button onClick={handleLogout} className="text-xs font-semibold text-red-400 hover:text-red-300 transition-colors uppercase tracking-wider">
+            Logout
           </button>
+        </div>
+
+        <div className="mb-10 inline-flex flex-wrap gap-2 rounded-xl bg-[rgba(212,175,55,0.03)] p-1.5 border border-[rgba(212,175,55,0.1)] shadow-inner">
           <button
-            onClick={() => setActiveTab('gallery')}
-            className={`rounded-lg px-6 py-2.5 font-display text-xs font-semibold uppercase tracking-wider transition-all duration-300 ${activeTab === 'gallery' ? 'bg-[rgba(212,175,55,0.15)] text-route-yellow shadow-sm' : 'text-dusk-grey hover:text-paper-cream hover:bg-white/5'}`}
+            onClick={() => setActiveTab('reservations')}
+            className={`rounded-lg px-6 py-2.5 font-display text-xs font-semibold uppercase tracking-wider transition-all duration-300 ${activeTab === 'reservations' ? 'bg-[rgba(212,175,55,0.15)] text-route-yellow shadow-sm' : 'text-dusk-grey hover:text-paper-cream hover:bg-white/5'}`}
           >
-            Gallery Images
+            Reservations
           </button>
-          <button
-            onClick={() => setActiveTab('reviews')}
-            className={`rounded-lg px-6 py-2.5 font-display text-xs font-semibold uppercase tracking-wider transition-all duration-300 ${activeTab === 'reviews' ? 'bg-[rgba(212,175,55,0.15)] text-route-yellow shadow-sm' : 'text-dusk-grey hover:text-paper-cream hover:bg-white/5'}`}
-          >
-            Reviews
-          </button>
-          <button
-            onClick={() => setActiveTab('emails')}
-            className={`rounded-lg px-6 py-2.5 font-display text-xs font-semibold uppercase tracking-wider transition-all duration-300 ${activeTab === 'emails' ? 'bg-[rgba(212,175,55,0.15)] text-route-yellow shadow-sm' : 'text-dusk-grey hover:text-paper-cream hover:bg-white/5'}`}
-          >
-            Email Mgmt
-          </button>
+          {user?.role === 'super_admin' && (
+            <>
+              <button
+                onClick={() => setActiveTab('menu')}
+                className={`rounded-lg px-6 py-2.5 font-display text-xs font-semibold uppercase tracking-wider transition-all duration-300 ${activeTab === 'menu' ? 'bg-[rgba(212,175,55,0.15)] text-route-yellow shadow-sm' : 'text-dusk-grey hover:text-paper-cream hover:bg-white/5'}`}
+              >
+                Menu Items
+              </button>
+              <button
+                onClick={() => setActiveTab('gallery')}
+                className={`rounded-lg px-6 py-2.5 font-display text-xs font-semibold uppercase tracking-wider transition-all duration-300 ${activeTab === 'gallery' ? 'bg-[rgba(212,175,55,0.15)] text-route-yellow shadow-sm' : 'text-dusk-grey hover:text-paper-cream hover:bg-white/5'}`}
+              >
+                Gallery Images
+              </button>
+              <button
+                onClick={() => setActiveTab('reviews')}
+                className={`rounded-lg px-6 py-2.5 font-display text-xs font-semibold uppercase tracking-wider transition-all duration-300 ${activeTab === 'reviews' ? 'bg-[rgba(212,175,55,0.15)] text-route-yellow shadow-sm' : 'text-dusk-grey hover:text-paper-cream hover:bg-white/5'}`}
+              >
+                Reviews
+              </button>
+              <button
+                onClick={() => setActiveTab('emails')}
+                className={`rounded-lg px-6 py-2.5 font-display text-xs font-semibold uppercase tracking-wider transition-all duration-300 ${activeTab === 'emails' ? 'bg-[rgba(212,175,55,0.15)] text-route-yellow shadow-sm' : 'text-dusk-grey hover:text-paper-cream hover:bg-white/5'}`}
+              >
+                Email Mgmt
+              </button>
+              <button
+                onClick={() => setActiveTab('users')}
+                className={`rounded-lg px-6 py-2.5 font-display text-xs font-semibold uppercase tracking-wider transition-all duration-300 ${activeTab === 'users' ? 'bg-[rgba(212,175,55,0.15)] text-route-yellow shadow-sm' : 'text-dusk-grey hover:text-paper-cream hover:bg-white/5'}`}
+              >
+                Users
+              </button>
+            </>
+          )}
         </div>
 
         <AnimatePresence mode="wait">
@@ -864,8 +959,16 @@ export default function Admin() {
             </motion.div>
           )}
 
-          {activeTab === 'emails' && (
-            <EmailMgmtTab key="emails" password={password} />
+          {activeTab === 'emails' && user?.role === 'super_admin' && (
+            <EmailMgmtTab key="emails" password={password} token={token} />
+          )}
+
+          {activeTab === 'reservations' && (
+            <ReservationsTab key="reservations" token={token} role={user?.role || ''} />
+          )}
+
+          {activeTab === 'users' && user?.role === 'super_admin' && (
+            <UsersTab key="users" token={token} />
           )}
         </AnimatePresence>
 

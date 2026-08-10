@@ -90,8 +90,15 @@ export default function Footer() {
           </a>
         </div>
       </div>
-      <div className="border-t border-[rgba(212,175,55,0.15)] py-5 text-center font-body text-[11px] text-dusk-grey/70">
-        © {new Date().getFullYear()} Highway 10 Food Court · Jamnagar, Gujarat
+      <div className="border-t border-[rgba(212,175,55,0.15)] py-5">
+        <div className="mx-auto flex max-w-6xl flex-col items-center justify-between gap-4 px-4 md:flex-row md:px-8 md:pl-20">
+          <div className="font-body text-[11px] text-dusk-grey/70">
+            © {new Date().getFullYear()} Highway 10 Food Court · Jamnagar, Gujarat
+          </div>
+          <Link to="/login" className="font-display text-[10px] font-semibold uppercase tracking-widest text-dusk-grey/50 hover:text-route-yellow transition-colors">
+            Staff Login
+          </Link>
+        </div>
       </div>
     </footer>
   )

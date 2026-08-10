@@ -1,48 +1,72 @@
 import { useEffect, useState } from 'react'
 import { AnimatePresence, motion, useReducedMotion } from 'framer-motion'
-import testimonials from '../data/testimonials.json'
 import TestimonialCard from './TestimonialCard'
 
+type Review = {
+  _id: string
+  name: string
+  quote: string
+  meta: string
+}
+
 export default function TestimonialCarousel() {
-  const [i, setI] = useState(0)
+  const [reviews, setReviews] = useState<Review[]>([])
+  const [displayReviews, setDisplayReviews] = useState<Review[]>([])
   const reduce = useReducedMotion()
-  const slides = testimonials.slice(0, 5)
+
+  // Fetch reviews from DB
+  useEffect(() => {
+    fetch('/api/reviews')
+      .then(res => res.json())
+      .then(data => {
+        if (Array.isArray(data) && data.length > 0) {
+          setReviews(data)
+        }
+      })
+      .catch(console.error)
+  }, [])
+
+  // Shuffle and pick 3 reviews
+  const pickRandom = (all: Review[]) => {
+    if (all.length === 0) return []
+    const shuffled = [...all].sort(() => 0.5 - Math.random())
+    return shuffled.slice(0, 3)
+  }
 
   useEffect(() => {
-    if (reduce) return
-    const id = setInterval(() => setI((v) => (v + 1) % slides.length), 5000)
-    return () => clearInterval(id)
-  }, [reduce, slides.length])
+    if (reviews.length > 0) {
+      setDisplayReviews(pickRandom(reviews))
+    }
+  }, [reviews])
 
-  const t = slides[i]
+  // Cycle every 3 seconds
+  useEffect(() => {
+    if (reduce || reviews.length <= 3) return // No need to cycle if 3 or fewer reviews
+    const id = setInterval(() => {
+      setDisplayReviews(pickRandom(reviews))
+    }, 3000)
+    return () => clearInterval(id)
+  }, [reduce, reviews])
+
+  if (reviews.length === 0) return null
 
   return (
-    <div>
+    <div className="w-full">
       <div className="relative min-h-[160px]">
-        <AnimatePresence mode="wait">
+        <AnimatePresence mode="popLayout">
           <motion.div
-            key={t.id}
+            key={displayReviews.map(r => r._id).join('-')}
             initial={reduce ? false : { opacity: 0, y: 12 }}
             animate={{ opacity: 1, y: 0 }}
             exit={reduce ? undefined : { opacity: 0, y: -8 }}
             transition={{ duration: 0.4, ease: [0.22, 1, 0.36, 1] }}
+            className="grid grid-cols-1 md:grid-cols-3 gap-6"
           >
-            <TestimonialCard quote={t.quote} name={t.name} meta={t.meta} dark />
+            {displayReviews.map((t) => (
+              <TestimonialCard key={t._id} quote={t.quote} name={t.name} meta={t.meta} dark />
+            ))}
           </motion.div>
         </AnimatePresence>
-      </div>
-      <div className="mt-5 flex gap-2">
-        {slides.map((s, idx) => (
-          <button
-            key={s.id}
-            type="button"
-            aria-label={`Show review ${idx + 1}`}
-            onClick={() => setI(idx)}
-            className={`h-1.5 rounded-full transition-all duration-300 ${
-              idx === i ? 'w-8 bg-route-yellow' : 'w-5 bg-[rgba(212,175,55,0.25)]'
-            }`}
-          />
-        ))}
       </div>
     </div>
   )

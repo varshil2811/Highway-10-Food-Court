@@ -23,7 +23,9 @@ export default function App() {
               <Route path="/reserve" element={<Reserve />} />
               <Route path="/about" element={<About />} />
               <Route path="/reviews" element={<Reviews />} />
-              <Route path="admin" element={<Admin />} />
+              <Route path="/login" element={<Admin />} />
+              <Route path="/admin/dashboard" element={<Admin />} />
+              <Route path="/stall-admin/dashboard" element={<Admin />} />
             </Route>
           </Routes>
         </SmoothScroll>

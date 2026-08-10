@@ -48,7 +48,16 @@ export default function Navbar() {
     >
       <div className="mx-auto flex max-w-6xl items-center justify-between gap-4 px-4 py-4 md:px-8 md:pl-20">
         <Magnetic strength={0.15}>
-          <Link to="/" className="flex items-center gap-3 group" onClick={() => { setOpen(false); }}>
+          <Link 
+            to="/" 
+            className="flex items-center gap-3 group" 
+            onClick={() => { 
+              setOpen(false);
+              if (location.pathname === '/') {
+                window.scrollTo({ top: 0, behavior: 'smooth' });
+              }
+            }}
+          >
             <Logo className="w-11 h-auto text-paper-cream transition-transform duration-500 group-hover:scale-105" />
             <div>
               <div className="font-serif text-lg font-bold leading-none tracking-tight text-paper-cream">

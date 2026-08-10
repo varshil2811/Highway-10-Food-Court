@@ -11,6 +11,16 @@ const reservationSchema = new mongoose.Schema(
     customerEmail: { type: String, default: '' },
     reservationType: { type: String, default: 'Table Reservation' },
     preferredStall: { type: String, default: 'Any' },
+    status: {
+      type: String,
+      enum: ['Pending', 'Accepted', 'Rejected', 'Cancelled'],
+      default: 'Pending',
+    },
+    stall_id: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'Stall',
+      default: null,
+    },
   },
   { timestamps: true }
 )

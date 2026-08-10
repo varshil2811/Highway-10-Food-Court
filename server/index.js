@@ -8,8 +8,11 @@ import menuRouter from './routes/menu.js'
 import galleryRouter from './routes/gallery.js'
 import reviewsRouter from './routes/reviews.js'
 import adminEmailsRouter from './routes/adminEmails.js'
+import authRouter from './routes/auth.js'
 import path from 'path'
 import { fileURLToPath } from 'url'
+import bcrypt from 'bcrypt'
+import User from './models/User.js'
 
 const __filename = fileURLToPath(import.meta.url)
 const __dirname = path.dirname(__filename)
@@ -38,6 +41,25 @@ app.use('/api/menu', menuRouter)
 app.use('/api/gallery', galleryRouter)
 app.use('/api/reviews', reviewsRouter)
 app.use('/api/admin/emails', adminEmailsRouter)
+app.use('/api/auth', authRouter)
+
+async function ensureSuperAdmin() {
+  const adminEmail = process.env.SMTP_USER || 'admin@highway10.com'
+  const adminPassword = process.env.ADMIN_PASSWORD || 'highway10admin'
+  
+  const existingAdmin = await User.findOne({ role: 'super_admin' })
+  if (!existingAdmin) {
+    console.log('No super admin found. Creating default super admin...')
+    const hashedPassword = await bcrypt.hash(adminPassword, 10)
+    await User.create({
+      name: 'Super Admin',
+      email: adminEmail.toLowerCase(),
+      password: hashedPassword,
+      role: 'super_admin'
+    })
+    console.log(`Default super admin created with email: ${adminEmail}`)
+  }
+}
 
 async function start() {
   const uri = process.env.MONGODB_URI
@@ -46,6 +68,7 @@ async function start() {
       await mongoose.connect(uri)
       globalThis.__dbReady = true
       console.log('MongoDB connected')
+      await ensureSuperAdmin()
     } catch (err) {
       console.warn('MongoDB unavailable — using in-memory store:', err.message)
     }
@@ -59,19 +82,3 @@ async function start() {
 }
 
 start()
-
-// Trigger nodemon restart
-
-// Trigger nodemon restart
-
-// Restart nodemon again
-
-// Nodemon reload
-
-// Restart nodemon again
-
-// nodemon reload 3
-
-// nodemon reload 4
-
-// Triggering restart again for new password

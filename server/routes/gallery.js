@@ -39,17 +39,10 @@ const upload = multer({
   }
 })
 
-// Middleware to check admin password
-const requireAdmin = (req, res, next) => {
-  const adminPassword = process.env.ADMIN_PASSWORD || 'highway10admin'
-  const providedPassword = req.headers['x-admin-password']
+import { requireAuth, requireRole } from '../middleware/auth.js'
 
-  if (providedPassword === adminPassword) {
-    next()
-  } else {
-    res.status(401).json({ error: 'Unauthorized: Invalid admin password' })
-  }
-}
+// Middleware to check admin password
+const requireAdmin = [requireAuth, requireRole('super_admin')]
 
 // GET all gallery items
 router.get('/', async (req, res) => {

@@ -162,7 +162,7 @@ export default function Home() {
       <div className="bg-asphalt relative z-10 -mt-8 pt-8">
         <div className="mx-auto grid max-w-6xl grid-cols-1 gap-4 px-4 py-8 md:grid-cols-3 md:px-8 md:pl-20">
           <div className="flex flex-col items-center justify-center rounded-[1.5rem] border border-[rgba(212,175,55,0.25)] bg-gradient-to-b from-[#1a1a1a] to-[#0f0f0f] py-8 text-center shadow-[0_8px_30px_rgba(0,0,0,0.5)]">
-            <div className="font-serif text-2xl font-bold tracking-tight text-paper-cream">
+            <div className="font-display text-2xl font-bold tracking-tight text-paper-cream">
               ★ {site.rating}
             </div>
             <div className="mt-2 font-display text-[11px] font-semibold uppercase tracking-[0.2em] text-dusk-grey">
@@ -171,7 +171,7 @@ export default function Home() {
           </div>
 
           <div className="flex flex-col items-center justify-center rounded-[1.5rem] border border-[rgba(212,175,55,0.45)] bg-gradient-to-b from-[#1a1a1a] to-[#0f0f0f] py-8 text-center shadow-[0_8px_30px_rgba(0,0,0,0.5)]">
-            <div className="font-serif text-2xl font-bold tracking-tight text-paper-cream">
+            <div className="font-display text-2xl font-bold tracking-tight text-paper-cream">
               11 AM – 1 AM
             </div>
             <div className="mt-2 font-display text-[11px] font-semibold uppercase tracking-[0.2em] text-route-yellow">
@@ -180,7 +180,7 @@ export default function Home() {
           </div>
 
           <div className="flex flex-col items-center justify-center rounded-[1.5rem] border border-[rgba(212,175,55,0.25)] bg-gradient-to-b from-[#1a1a1a] to-[#0f0f0f] py-8 text-center shadow-[0_8px_30px_rgba(0,0,0,0.5)]">
-            <div className="font-serif text-xl font-bold tracking-tight text-paper-cream">
+            <div className="font-display text-xl font-bold tracking-tight text-paper-cream">
               Dine-In
             </div>
             <div className="mt-2 font-display text-[11px] font-semibold uppercase tracking-[0.2em] text-dusk-grey">
@@ -238,7 +238,7 @@ export default function Home() {
       </ExitSection>
 
       <ExitSection exit={0} title="Word on the Road" tone="light">
-        <div className="max-w-xl">
+        <div className="w-full">
           <TestimonialCarousel />
         </div>
         <Magnetic strength={0.15} className="mt-10">

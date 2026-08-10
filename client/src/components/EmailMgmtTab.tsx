@@ -17,7 +17,7 @@ type OwnerSetting = {
   status: string
 }
 
-export default function EmailMgmtTab({ password }: { password: string }) {
+export default function EmailMgmtTab({ adminPassword, token }: { adminPassword?: string, token?: string }) {
   const [stalls, setStalls] = useState<StallEmail[]>([])
   const [owner, setOwner] = useState<OwnerSetting | null>(null)
   const [availableStalls, setAvailableStalls] = useState<{id: string, name: string}[]>([])
@@ -32,7 +32,8 @@ export default function EmailMgmtTab({ password }: { password: string }) {
     setLoading(true)
     setError('')
     try {
-      const headers = { 'x-admin-password': password }
+      const headers: Record<string, string> = { 'x-admin-password': adminPassword || '' }
+      if (token) headers['Authorization'] = `Bearer ${token}`
       const [stallsRes, ownerRes, metadataRes] = await Promise.all([
         fetch('/api/admin/emails/stalls', { headers }),
         fetch('/api/admin/emails/owner', { headers }),
@@ -72,9 +73,11 @@ export default function EmailMgmtTab({ password }: { password: string }) {
   const handleAddStall = async (e: FormEvent) => {
     e.preventDefault()
     try {
+      const headers: Record<string, string> = { 'Content-Type': 'application/json', 'x-admin-password': adminPassword || '' }
+      if (token) headers['Authorization'] = `Bearer ${token}`
       const res = await fetch('/api/admin/emails/stalls', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json', 'x-admin-password': password },
+        headers,
         body: JSON.stringify(newStall)
       })
       if (!res.ok) {
@@ -91,9 +94,11 @@ export default function EmailMgmtTab({ password }: { password: string }) {
   const handleDeleteStall = async (id: string) => {
     if (!window.confirm('Are you sure you want to delete this stall email configuration?')) return
     try {
+      const headers: Record<string, string> = { 'x-admin-password': adminPassword || '' }
+      if (token) headers['Authorization'] = `Bearer ${token}`
       const res = await fetch(`/api/admin/emails/stalls/${id}`, {
         method: 'DELETE',
-        headers: { 'x-admin-password': password }
+        headers
       })
       if (!res.ok) throw new Error('Failed to delete')
       fetchSettings()
@@ -104,9 +109,11 @@ export default function EmailMgmtTab({ password }: { password: string }) {
 
   const handleToggleStallStatus = async (stall: StallEmail) => {
     try {
+      const headers: Record<string, string> = { 'Content-Type': 'application/json', 'x-admin-password': adminPassword || '' }
+      if (token) headers['Authorization'] = `Bearer ${token}`
       const res = await fetch(`/api/admin/emails/stalls/${stall._id}`, {
         method: 'PUT',
-        headers: { 'Content-Type': 'application/json', 'x-admin-password': password },
+        headers,
         body: JSON.stringify({ status: stall.status === 'Active' ? 'Inactive' : 'Active' })
       })
       if (!res.ok) throw new Error('Failed to update status')
@@ -119,9 +126,11 @@ export default function EmailMgmtTab({ password }: { password: string }) {
   const handleUpdateOwner = async (e: FormEvent) => {
     e.preventDefault()
     try {
+      const headers: Record<string, string> = { 'Content-Type': 'application/json', 'x-admin-password': adminPassword || '' }
+      if (token) headers['Authorization'] = `Bearer ${token}`
       const res = await fetch('/api/admin/emails/owner', {
         method: 'PUT',
-        headers: { 'Content-Type': 'application/json', 'x-admin-password': password },
+        headers,
         body: JSON.stringify(ownerForm)
       })
       if (!res.ok) throw new Error('Failed to update owner settings')

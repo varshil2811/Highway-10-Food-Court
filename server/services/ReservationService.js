@@ -1,6 +1,6 @@
 import Stall from '../models/Stall.js'
 import OwnerSetting from '../models/OwnerSetting.js'
-import { sendReservationEmail } from './EmailService.js'
+import { sendReservationEmail, sendCustomerPendingEmail, sendCustomerStatusEmail } from './EmailService.js'
 
 export const processNewReservation = async (reservationData) => {
   try {
@@ -26,15 +26,28 @@ export const processNewReservation = async (reservationData) => {
         console.log(`[ReservationService] Routing to owner email: ${targetEmail}`)
       } else {
         console.error(`[ReservationService] CRITICAL: No active owner email configured to receive reservations.`)
-        return // Cannot send email
       }
     }
 
-    // Send the email
-    await sendReservationEmail(targetEmail, reservationData)
+    // Send the admin notification email
+    if (targetEmail) {
+      await sendReservationEmail(targetEmail, reservationData)
+    }
+
+    // Send the customer pending email
+    if (reservationData.customerEmail) {
+      await sendCustomerPendingEmail(reservationData)
+    }
 
   } catch (error) {
     console.error('[ReservationService] Error processing new reservation email:', error)
-    // We intentionally don't throw the error so it doesn't crash the API response
+  }
+}
+
+export const sendStatusUpdateEmail = async (reservationData) => {
+  try {
+    await sendCustomerStatusEmail(reservationData)
+  } catch (error) {
+    console.error('[ReservationService] Error sending status update email:', error)
   }
 }

@@ -29,6 +29,11 @@ const stallSchema = new mongoose.Schema(
       enum: ['Active', 'Inactive'],
       default: 'Active',
     },
+    owner_id: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'User',
+      default: null,
+    },
   },
   { timestamps: true }
 )
