@@ -34,7 +34,7 @@ type MenuItem = {
   jain: boolean
   bestseller: boolean
   price: string
-w  image ?: string
+  image?: string
 }
 
 type GalleryItem = {
@@ -43,6 +43,7 @@ type GalleryItem = {
   alt: string
   category: string
   homePosition?: number | null
+  media_type?: 'image' | 'video'
 }
 
 type MetadataItem = {
@@ -164,8 +165,9 @@ export default function Admin() {
 
   // Gallery Form
   const [galleryForm, setGalleryForm] = useState({
-    alt: '', category: '', file: null as File | null
+    alt: '', category: '', files: [] as File[]
   })
+  const [uploadProgress, setUploadProgress] = useState(0)
 
   // Reviews State
   const [reviews, setReviews] = useState<ReviewItem[]>([])
@@ -480,38 +482,58 @@ export default function Admin() {
   async function handleGallerySubmit(e: FormEvent) {
     e.preventDefault()
     setGalleryError('')
-    if (!galleryForm.file) return setGalleryError('Please select an image')
+    if (galleryForm.files.length === 0) return setGalleryError('Please select at least one media file')
 
     try {
       const fd = new FormData()
-      fd.append('image', galleryForm.file)
+      galleryForm.files.forEach(f => fd.append('media', f))
       fd.append('alt', galleryForm.alt)
       fd.append('category', galleryForm.category)
 
-      const res = await fetch('/api/gallery', {
-        method: 'POST',
-        headers: { 'Authorization': `Bearer ${token}` },
-        body: fd
-      })
-      if (!res.ok) {
-        let errorMsg = 'Failed to upload image'
-        try {
-          const data = await res.json()
-          errorMsg = data.error || errorMsg
-        } catch {
-          errorMsg = `Server error: ${res.status} ${res.statusText}`
-        }
-        throw new Error(errorMsg)
-      }
+      setGalleryLoading(true)
+      setUploadProgress(0)
 
-      setGalleryForm({ alt: '', category: 'Ambience', file: null })
+      await new Promise((resolve, reject) => {
+        const xhr = new XMLHttpRequest();
+        xhr.open('POST', '/api/gallery');
+        xhr.setRequestHeader('Authorization', `Bearer ${token}`);
+        
+        xhr.upload.onprogress = (event) => {
+          if (event.lengthComputable) {
+            const percentComplete = Math.round((event.loaded / event.total) * 100);
+            setUploadProgress(percentComplete);
+          }
+        };
+
+        xhr.onload = () => {
+          if (xhr.status >= 200 && xhr.status < 300) {
+            resolve(JSON.parse(xhr.responseText));
+          } else {
+            let errorMsg = 'Failed to upload media';
+            try {
+              const data = JSON.parse(xhr.responseText);
+              errorMsg = data.error || errorMsg;
+            } catch {
+              errorMsg = `Server error: ${xhr.status} ${xhr.statusText}`;
+            }
+            reject(new Error(errorMsg));
+          }
+        };
+
+        xhr.onerror = () => reject(new Error('Network error: Failed to reach the server. Is the backend running?'));
+        
+        xhr.send(fd);
+      });
+
+      setGalleryForm({ alt: '', category: 'Ambience', files: [] })
       if (fileInputRef.current) fileInputRef.current.value = ''
+      setUploadProgress(0)
       fetchGallery()
       window.scrollTo({ top: 0, behavior: 'smooth' })
     } catch (err) {
-      let msg = err instanceof Error ? err.message : 'Error uploading image'
-      if (msg === 'Failed to fetch') msg = 'Network error: Failed to reach the server. Is the backend running?'
-      setGalleryError(msg)
+      setGalleryError(err instanceof Error ? err.message : 'Error uploading media')
+    } finally {
+      setGalleryLoading(false)
     }
   }
 
@@ -819,7 +841,14 @@ export default function Admin() {
                           key={item._id}
                           className={`relative group overflow-hidden rounded-xl border ${item.homePosition ? 'border-route-yellow shadow-[0_0_15px_rgba(212,175,55,0.4)]' : 'border-[rgba(212,175,55,0.2)]'}`}
                         >
-                          <img src={item.src} alt={item.alt} className="aspect-video w-full object-cover" />
+                          {item.media_type === 'video' ? (
+                            <video src={item.src} className="aspect-video w-full object-cover" />
+                          ) : (
+                            <img src={item.src} alt={item.alt} className="aspect-video w-full object-cover" />
+                          )}
+                          {item.media_type === 'video' && (
+                            <div className="absolute top-2 left-2 bg-black/60 text-white text-[10px] font-bold px-2 py-1 rounded border border-white/20">VIDEO</div>
+                          )}
                           {item.homePosition && (
                             <div className="absolute top-2 right-2 bg-route-yellow text-ink text-[10px] font-bold px-2 py-1 rounded">POS {item.homePosition}</div>
                           )}
@@ -847,16 +876,17 @@ export default function Admin() {
               <aside className="lg:sticky lg:top-24 lg:self-start space-y-6" ref={galleryFormRef}>
                 <div className="lux-card">
                   <h3 className="mb-5 font-serif text-xl font-bold tracking-tight text-route-yellow">
-                    Upload Image
+                    Upload Media
                   </h3>
                   <form onSubmit={handleGallerySubmit} className="space-y-4">
                     <div>
-                      <label className="mb-1.5 block font-display text-[10px] font-semibold uppercase tracking-[0.18em] text-dusk-grey">Image File</label>
+                      <label className="mb-1.5 block font-display text-[10px] font-semibold uppercase tracking-[0.18em] text-dusk-grey">Media File</label>
                       <input
                         type="file"
-                        accept="image/*"
+                        accept="image/*,video/mp4,video/webm"
+                        multiple
                         ref={fileInputRef}
-                        onChange={e => setGalleryForm(p => ({ ...p, file: e.target.files?.[0] || null }))}
+                        onChange={e => setGalleryForm(p => ({ ...p, files: Array.from(e.target.files || []) }))}
                         required
                         className="block w-full text-sm text-dusk-grey file:mr-4 file:rounded-xl file:border-0 file:bg-[rgba(212,175,55,0.15)] file:px-4 file:py-2.5 file:font-display file:text-xs file:font-semibold file:text-route-yellow hover:file:bg-[rgba(212,175,55,0.25)]"
                       />
@@ -884,8 +914,11 @@ export default function Admin() {
                       </select>
                     </div>
                     <div className="pt-4">
-                      <button type="submit" className="btn-primary w-full" disabled={!galleryForm.file}>
-                        Upload Image
+                      <button type="submit" className="btn-primary w-full relative overflow-hidden" disabled={galleryForm.files.length === 0 || galleryLoading}>
+                        {galleryLoading ? `Uploading... ${uploadProgress}%` : 'Upload Media'}
+                        {galleryLoading && (
+                          <div className="absolute left-0 bottom-0 h-1 bg-black/30 transition-all duration-300" style={{ width: `${uploadProgress}%` }} />
+                        )}
                       </button>
                     </div>
                   </form>

@@ -1,10 +1,13 @@
 import { useEffect, useState } from 'react'
 import { AnimatePresence, motion, useReducedMotion } from 'framer-motion'
+import GalleryVideoCard from './GalleryVideoCard'
+
 export type GalleryItem = {
   _id: string
   src: string
   alt: string
   category: string
+  media_type?: 'image' | 'video'
 }
 
 type Props = {
@@ -14,15 +17,23 @@ type Props = {
 
 export default function GalleryGrid({ items, categories }: Props) {
   const [tab, setTab] = useState<string>('All')
+  const [mediaFilter, setMediaFilter] = useState<'Photos' | 'Videos'>('Photos')
   const [active, setActive] = useState<GalleryItem | null>(null)
   const [expanded, setExpanded] = useState<boolean>(false)
   const reduce = useReducedMotion()
 
   useEffect(() => {
     setExpanded(false)
-  }, [tab])
+  }, [tab, mediaFilter])
 
-  const filtered = tab === 'All' ? items : items.filter((i) => i.category === tab)
+  const filtered = items.filter((i) => {
+    const matchTab = tab === 'All' || i.category === tab
+    const matchMedia = 
+      (mediaFilter === 'Photos' && i.media_type !== 'video') || 
+      (mediaFilter === 'Videos' && i.media_type === 'video')
+    return matchTab && matchMedia
+  })
+
   const hasMore = filtered.length > 6
   const displayedItems = (hasMore && !expanded) ? filtered.slice(0, 6) : filtered
 
@@ -37,29 +48,48 @@ export default function GalleryGrid({ items, categories }: Props) {
 
   return (
     <div>
-      <div className="mb-8 flex flex-wrap gap-2">
-        <button
-          onClick={() => setTab('All')}
-          className={`rounded-full px-4 py-2 font-display text-xs font-semibold transition-all duration-300 ${tab === 'All'
-              ? 'bg-route-yellow text-ink shadow-[0_8px_24px_rgba(212,175,55,0.25)]'
-              : 'border border-[rgba(212,175,55,0.2)] text-dusk-grey hover:border-route-yellow hover:text-route-yellow'
-            }`}
-        >
-          All
-        </button>
-        {categories.map((c) => (
+      <div className="mb-6 flex flex-col md:flex-row md:items-center justify-between gap-4">
+        {/* Category Filters */}
+        <div className="flex flex-wrap gap-2">
           <button
-            key={c.id}
-            type="button"
-            onClick={() => setTab(c.name)}
-            className={`rounded-full px-4 py-2 font-display text-xs font-semibold transition-all duration-300 ${tab === c.name
+            onClick={() => setTab('All')}
+            className={`rounded-full px-4 py-2 font-display text-xs font-semibold transition-all duration-300 ${tab === 'All'
                 ? 'bg-route-yellow text-ink shadow-[0_8px_24px_rgba(212,175,55,0.25)]'
                 : 'border border-[rgba(212,175,55,0.2)] text-dusk-grey hover:border-route-yellow hover:text-route-yellow'
               }`}
           >
-            {c.name}
+            All
           </button>
-        ))}
+          {categories.map((c) => (
+            <button
+              key={c.id}
+              type="button"
+              onClick={() => setTab(c.name)}
+              className={`rounded-full px-4 py-2 font-display text-xs font-semibold transition-all duration-300 ${tab === c.name
+                  ? 'bg-route-yellow text-ink shadow-[0_8px_24px_rgba(212,175,55,0.25)]'
+                  : 'border border-[rgba(212,175,55,0.2)] text-dusk-grey hover:border-route-yellow hover:text-route-yellow'
+                }`}
+            >
+              {c.name}
+            </button>
+          ))}
+        </div>
+
+        {/* Media Type Filters */}
+        <div className="flex bg-[rgba(212,175,55,0.05)] rounded-full p-1 border border-[rgba(212,175,55,0.15)] w-max">
+          {(['Photos', 'Videos'] as const).map((type) => (
+            <button
+              key={type}
+              onClick={() => setMediaFilter(type)}
+              className={`rounded-full px-4 py-1.5 font-display text-xs font-semibold transition-all duration-300 ${mediaFilter === type
+                  ? 'bg-[rgba(212,175,55,0.2)] text-route-yellow'
+                  : 'text-dusk-grey hover:text-paper-cream'
+                }`}
+            >
+              {type}
+            </button>
+          ))}
+        </div>
       </div>
 
       <motion.div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
@@ -83,14 +113,20 @@ export default function GalleryGrid({ items, categories }: Props) {
                 }}
                 className="group relative block w-full overflow-hidden rounded-[1.125rem] border border-[rgba(255,255,255,0.08)] text-left shadow-[0_12px_40px_-10px_rgba(0,0,0,0.5)] transition-all duration-500 hover:scale-[1.02] hover:border-[rgba(212,175,55,0.35)] hover:shadow-[0_8px_30px_-10px_rgba(212,175,55,0.3)]"
               >
-                <img
-                  src={item.src}
-                  alt={item.alt}
-                  className="aspect-video w-full object-cover transition-transform duration-700 ease-out group-hover:scale-[1.02]"
-                  loading="lazy"
-                />
+                {item.media_type === 'video' ? (
+                  <div className="pointer-events-none aspect-[9/16] w-full">
+                    <GalleryVideoCard src={item.src} alt={item.alt} />
+                  </div>
+                ) : (
+                  <img
+                    src={item.src}
+                    alt={item.alt}
+                    className="aspect-[4/3] w-full object-cover transition-transform duration-700 ease-out group-hover:scale-[1.02]"
+                    loading="lazy"
+                  />
+                )}
                 {isLastVisible && (
-                  <div className="absolute inset-0 flex items-center justify-center bg-asphalt/70 backdrop-blur-[2px] transition-colors duration-300 group-hover:bg-asphalt/60">
+                  <div className="absolute inset-0 flex items-center justify-center bg-asphalt/70 backdrop-blur-[2px] transition-colors duration-300 group-hover:bg-asphalt/60 z-20">
                     <span className="font-display text-3xl font-bold tracking-wider text-paper-cream">
                       +{filtered.length - 5}
                     </span>
@@ -115,16 +151,29 @@ export default function GalleryGrid({ items, categories }: Props) {
             aria-modal
             aria-label={active.alt}
           >
-            <motion.img
-              src={active.src}
-              alt={active.alt}
-              className="max-h-[85vh] max-w-5xl rounded-[1.125rem] object-contain shadow-[0_20px_60px_rgba(0,0,0,0.6)]"
-              initial={reduce ? false : { scale: 0.96, opacity: 0 }}
-              animate={{ scale: 1, opacity: 1 }}
-              exit={{ scale: 0.96, opacity: 0 }}
-              transition={{ duration: 0.35 }}
-              onClick={(e) => e.stopPropagation()}
-            />
+            {active.media_type === 'video' ? (
+              <motion.div
+                className="relative max-h-[85vh] h-full aspect-[9/16] rounded-[1.125rem] overflow-hidden shadow-[0_20px_60px_rgba(0,0,0,0.6)]"
+                initial={reduce ? false : { scale: 0.96, opacity: 0 }}
+                animate={{ scale: 1, opacity: 1 }}
+                exit={{ scale: 0.96, opacity: 0 }}
+                transition={{ duration: 0.35 }}
+                onClick={(e) => e.stopPropagation()}
+              >
+                <GalleryVideoCard src={active.src} alt={active.alt} isActive={true} />
+              </motion.div>
+            ) : (
+              <motion.img
+                src={active.src}
+                alt={active.alt}
+                className="max-h-[85vh] max-w-5xl rounded-[1.125rem] object-contain shadow-[0_20px_60px_rgba(0,0,0,0.6)]"
+                initial={reduce ? false : { scale: 0.96, opacity: 0 }}
+                animate={{ scale: 1, opacity: 1 }}
+                exit={{ scale: 0.96, opacity: 0 }}
+                transition={{ duration: 0.35 }}
+                onClick={(e) => e.stopPropagation()}
+              />
+            )}
             <button
               type="button"
               className="absolute right-4 top-4 font-display text-sm font-semibold text-route-yellow transition-opacity hover:opacity-80"

@@ -3,43 +3,37 @@ import multer from 'multer'
 import fs from 'fs'
 import path from 'path'
 import { fileURLToPath } from 'url'
+import { v2 as cloudinary } from 'cloudinary'
 import GalleryItem from '../models/GalleryItem.js'
+import { requireAuth, requireRole } from '../middleware/auth.js'
+
+// Cloudinary Configuration
+cloudinary.config({
+  cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
+  api_key: process.env.CLOUDINARY_API_KEY,
+  api_secret: process.env.CLOUDINARY_API_SECRET
+});
 
 const __filename = fileURLToPath(import.meta.url)
 const __dirname = path.dirname(__filename)
+const uploadDir = path.join(__dirname, '../public/uploads') // kept for legacy fallback
 
 const router = Router()
 
-// Ensure uploads directory exists
-const uploadDir = path.join(__dirname, '../public/uploads')
-if (!fs.existsSync(uploadDir)) {
-  fs.mkdirSync(uploadDir, { recursive: true })
-}
-
-// Configure Multer storage
-const storage = multer.diskStorage({
-  destination: function (req, file, cb) {
-    cb(null, uploadDir)
-  },
-  filename: function (req, file, cb) {
-    const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9)
-    cb(null, uniqueSuffix + path.extname(file.originalname))
-  }
-})
+// Configure Multer memory storage
+const storage = multer.memoryStorage()
 
 const upload = multer({
   storage,
-  limits: { fileSize: 5 * 1024 * 1024 }, // 5MB max
+  limits: { fileSize: 25 * 1024 * 1024 }, // 25MB max for short videos
   fileFilter: (req, file, cb) => {
-    if (file.mimetype.startsWith('image/')) {
+    if (file.mimetype.startsWith('image/') || file.mimetype === 'video/mp4' || file.mimetype === 'video/webm') {
       cb(null, true)
     } else {
-      cb(new Error('Only images are allowed'))
+      cb(new Error('Only images and mp4/webm videos are allowed'))
     }
   }
 })
-
-import { requireAuth, requireRole } from '../middleware/auth.js'
 
 // Middleware to check admin password
 const requireAdmin = [requireAuth, requireRole('super_admin')]
@@ -54,23 +48,48 @@ router.get('/', async (req, res) => {
   }
 })
 
-// POST upload new gallery image
-router.post('/', requireAdmin, upload.single('image'), async (req, res) => {
+// POST upload new gallery media
+router.post('/', requireAdmin, upload.array('media', 20), async (req, res) => {
   try {
-    if (!req.file) {
-      return res.status(400).json({ error: 'Image file is required' })
+    if (!req.files || req.files.length === 0) {
+      return res.status(400).json({ error: 'Media files are required' })
     }
 
     const { alt, category } = req.body
+    const uploadedItems = []
 
-    // The client will request this image from /uploads/...
-    const src = `/uploads/${req.file.filename}`
+    for (const file of req.files) {
+      // Wrap upload stream in a Promise
+      const uploadResult = await new Promise((resolve, reject) => {
+        const uploadStream = cloudinary.uploader.upload_stream(
+          { resource_type: 'auto', folder: 'highway10' },
+          (error, result) => {
+            if (error) reject(error);
+            else resolve(result);
+          }
+        );
+        uploadStream.end(file.buffer);
+      });
 
-    const newItem = new GalleryItem({ src, alt, category })
-    await newItem.save()
-    res.status(201).json(newItem)
+      const media_type = uploadResult.resource_type === 'video' ? 'video' : 'image'
+      
+      const newItem = new GalleryItem({ 
+        src: uploadResult.secure_url, 
+        alt, 
+        category, 
+        media_type,
+        publicId: uploadResult.public_id,
+        fileFormat: uploadResult.format,
+        fileSize: uploadResult.bytes
+      })
+      await newItem.save()
+      uploadedItems.push(newItem)
+    }
+
+    res.status(201).json(uploadedItems)
   } catch (error) {
-    res.status(400).json({ error: error.message })
+    console.error('Cloudinary Upload Error:', error)
+    res.status(400).json({ error: error.message || 'Upload failed' })
   }
 })
 
@@ -80,16 +99,21 @@ router.delete('/:id', requireAdmin, async (req, res) => {
     const itemToDelete = await GalleryItem.findById(req.params.id)
     if (!itemToDelete) return res.status(404).json({ error: 'Item not found' })
 
-    await GalleryItem.findByIdAndDelete(req.params.id)
-
-    // Try to delete the file if it's in the uploads folder
-    if (itemToDelete.src.startsWith('/uploads/')) {
+    // Try deleting from Cloudinary if it's hosted there
+    if (itemToDelete.publicId) {
+      // resource_type must match 'image' or 'video' for Cloudinary destroy to work properly
+      const resourceType = itemToDelete.media_type === 'video' ? 'video' : 'image'
+      await cloudinary.uploader.destroy(itemToDelete.publicId, { resource_type: resourceType })
+    } else if (itemToDelete.src.startsWith('/uploads/')) {
+      // Legacy fallback for local files
       const filename = path.basename(itemToDelete.src)
       const filepath = path.join(uploadDir, filename)
       if (fs.existsSync(filepath)) {
         fs.unlinkSync(filepath)
       }
     }
+
+    await GalleryItem.findByIdAndDelete(req.params.id)
 
     res.json({ message: 'Gallery item deleted successfully' })
   } catch (error) {

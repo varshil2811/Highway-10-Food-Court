@@ -17,6 +17,23 @@ const galleryItemSchema = new mongoose.Schema(
       required: true,
       trim: true
     },
+    media_type: {
+      type: String,
+      enum: ['image', 'video'],
+      default: 'image'
+    },
+    publicId: {
+      type: String,
+      default: null
+    },
+    fileFormat: {
+      type: String,
+      default: null
+    },
+    fileSize: {
+      type: Number,
+      default: null
+    },
     homePosition: {
       type: Number,
       default: null,
