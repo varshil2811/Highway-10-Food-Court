@@ -45,10 +45,15 @@ app.use('/api/auth', authRouter)
 
 if (process.env.NODE_ENV === 'production') {
   app.use(express.static(path.join(__dirname, '../client/dist')))
-  app.get('*', (req, res) => {
-    res.sendFile(path.join(__dirname, '../client/dist/index.html'))
-  })
 }
+
+// 404 Catch-All Handler (Production Safe)
+app.use((req, res) => {
+  res.status(404).json({
+    success: false,
+    message: "Route not found"
+  })
+})
 async function ensureSuperAdmin() {
   const adminEmail = process.env.SMTP_USER || 'admin@highway10.com'
   const adminPassword = process.env.ADMIN_PASSWORD || 'highway10admin'
