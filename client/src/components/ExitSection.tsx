@@ -1,6 +1,5 @@
-import { useEffect, useState } from 'react'
 import type { ReactNode } from 'react'
-import { motion, useReducedMotion } from 'framer-motion'
+import { motion, useReducedMotion, type Variants } from 'framer-motion'
 
 type Props = {
   exit: number
@@ -11,7 +10,7 @@ type Props = {
   className?: string
 }
 
-const staggerContainer = {
+const staggerContainer: Variants = {
   hidden: { opacity: 0 },
   show: {
     opacity: 1,
@@ -19,9 +18,9 @@ const staggerContainer = {
   }
 }
 
-const childVariant = {
+const childVariant: Variants = {
   hidden: { opacity: 0, y: 30 },
-  show: { opacity: 1, y: 0, transition: { duration: 0.6, ease: [0.22, 1, 0.36, 1] } }
+  show: { opacity: 1, y: 0, transition: { duration: 0.6, ease: [0.22, 1, 0.36, 1] as [number, number, number, number] } }
 }
 
 export default function ExitSection({

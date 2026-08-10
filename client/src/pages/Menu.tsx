@@ -262,7 +262,7 @@ export default function Menu() {
               <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4">
                 {filtered.map((item) => (
                   <MenuCard
-                    key={item.id || item._id}
+                    key={item._id}
                     name={item.name}
                     description={item.description}
                     veg={item.veg}

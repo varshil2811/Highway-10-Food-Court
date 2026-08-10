@@ -19,7 +19,7 @@ type OwnerSetting = {
 
 export default function EmailMgmtTab({ adminPassword, token }: { adminPassword?: string, token?: string }) {
   const [stalls, setStalls] = useState<StallEmail[]>([])
-  const [owner, setOwner] = useState<OwnerSetting | null>(null)
+  const [, setOwner] = useState<OwnerSetting | null>(null)
   const [availableStalls, setAvailableStalls] = useState<{id: string, name: string}[]>([])
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')

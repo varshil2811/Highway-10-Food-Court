@@ -43,6 +43,12 @@ app.use('/api/reviews', reviewsRouter)
 app.use('/api/admin/emails', adminEmailsRouter)
 app.use('/api/auth', authRouter)
 
+if (process.env.NODE_ENV === 'production') {
+  app.use(express.static(path.join(__dirname, '../client/dist')))
+  app.get('*', (req, res) => {
+    res.sendFile(path.join(__dirname, '../client/dist/index.html'))
+  })
+}
 async function ensureSuperAdmin() {
   const adminEmail = process.env.SMTP_USER || 'admin@highway10.com'
   const adminPassword = process.env.ADMIN_PASSWORD || 'highway10admin'

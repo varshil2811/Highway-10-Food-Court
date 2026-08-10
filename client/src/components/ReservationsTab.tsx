@@ -16,7 +16,7 @@ export type ReservationItem = {
   stall_id: string | null
 }
 
-export default function ReservationsTab({ token, role }: { token: string, role: string }) {
+export default function ReservationsTab({ token }: { token: string }) {
   const [reservations, setReservations] = useState<ReservationItem[]>([])
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')

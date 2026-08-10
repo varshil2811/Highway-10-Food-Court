@@ -12,7 +12,7 @@ function useVerticalScroll<T extends HTMLElement>() {
   useEffect(() => {
     const el = ref.current
     if (!el) return
-    const onWheel = (e) => {
+    const onWheel = (e: WheelEvent) => {
       if (e.deltaY !== 0) {
         e.preventDefault()
         el.scrollTop += e.deltaY
@@ -173,7 +173,7 @@ export default function Admin() {
   const [reviews, setReviews] = useState<ReviewItem[]>([])
   const [reviewsLoading, setReviewsLoading] = useState(false)
   const [reviewsError, setReviewsError] = useState('')
-  const [reviewForm, setReviewForm] = useState({ name: '', quote: '', meta: '' })
+
 
   useEffect(() => {
     if (galleryCategories.length > 0 && !galleryForm.category) {
@@ -591,7 +591,7 @@ export default function Admin() {
 
   return (
     <>
-      <Seo title="Admin Panel" path="/admin" />
+      <Seo title="Admin Panel" description="Highway 10 Administration" path="/admin" />
       <ExitSection exit={0} title="Administration" tone="dark" className="!pt-28 md:!pt-36">
 
         <div className="mb-4 flex flex-col md:flex-row md:items-center justify-between gap-4 rounded-xl bg-black/20 p-4 border border-[rgba(212,175,55,0.1)]">
@@ -959,7 +959,7 @@ export default function Admin() {
               <div>
                 <div className="mb-5 flex items-center justify-between">
                   <h2 className="font-serif text-2xl font-bold tracking-tight text-route-yellow">Reviews</h2>
-                  <button onClick={fetchReviews} className="text-sm text-dusk-grey underline hover:text-paper-cream">Refresh</button>
+                  <button onClick={() => fetchReviews(true)} className="text-sm text-dusk-grey underline hover:text-paper-cream">Refresh</button>
                 </div>
 
                 {reviewsError && <div className="mb-4 rounded-xl bg-red-900/20 p-4 text-sm text-red-400 border border-red-500/20">{reviewsError}</div>}
@@ -993,11 +993,11 @@ export default function Admin() {
           )}
 
           {activeTab === 'emails' && user?.role === 'super_admin' && (
-            <EmailMgmtTab key="emails" password={password} token={token} />
+            <EmailMgmtTab key="emails" adminPassword={password} token={token} />
           )}
 
           {activeTab === 'reservations' && (
-            <ReservationsTab key="reservations" token={token} role={user?.role || ''} />
+            <ReservationsTab key="reservations" token={token} />
           )}
 
           {activeTab === 'users' && user?.role === 'super_admin' && (

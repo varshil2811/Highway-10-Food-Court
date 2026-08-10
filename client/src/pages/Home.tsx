@@ -1,5 +1,5 @@
 import { Link } from 'react-router-dom'
-import { motion, useReducedMotion, useScroll, useTransform } from 'framer-motion'
+import { motion, useReducedMotion, useScroll, useTransform, type Variants } from 'framer-motion'
 import { useRef, useState, useEffect } from 'react'
 import Seo from '../components/Seo'
 import ExitSection from '../components/ExitSection'
@@ -91,7 +91,7 @@ export default function Home() {
   const yBg = useTransform(scrollYProgress, [0, 1], ["0%", "30%"])
   const opacityBg = useTransform(scrollYProgress, [0, 1], [1, 0])
 
-  const staggerContainer = {
+  const staggerContainer: Variants = {
     hidden: { opacity: 0 },
     show: {
       opacity: 1,
@@ -99,9 +99,9 @@ export default function Home() {
     }
   }
 
-  const fadeInUp = {
+  const fadeInUp: Variants = {
     hidden: { opacity: 0, y: 20 },
-    show: { opacity: 1, y: 0, transition: { duration: 0.8, ease: [0.16, 1, 0.3, 1] } }
+    show: { opacity: 1, y: 0, transition: { duration: 0.8, ease: [0.16, 1, 0.3, 1] as [number, number, number, number] } }
   }
 
   return (
@@ -192,7 +192,7 @@ export default function Home() {
 
       <ExitSection exit={0} title="Why Stop Here" tone="light" id="why">
         <div className="grid gap-5 md:grid-cols-3">
-          {reasons.map((r, idx) => (
+          {reasons.map((r) => (
             <article key={r.title} className="lux-card group">
               <div className="mb-4 inline-flex h-12 w-12 items-center justify-center rounded-2xl bg-[rgba(212,175,55,0.15)] text-route-yellow transition-transform duration-500 group-hover:scale-110 group-hover:rotate-6">
                 {r.icon}
