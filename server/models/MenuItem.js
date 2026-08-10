@@ -39,6 +39,10 @@ const menuItemSchema = new mongoose.Schema(
       default: '₹ —',
       trim: true,
     },
+    image: {
+      type: String,
+      default: '',
+    },
   },
   { timestamps: true }
 )

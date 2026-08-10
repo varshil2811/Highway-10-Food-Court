@@ -1,0 +1,36 @@
+import mongoose from 'mongoose'
+
+const stallSchema = new mongoose.Schema(
+  {
+    stallName: {
+      type: String,
+      required: true,
+      unique: true,
+      trim: true,
+    },
+    email: {
+      type: String,
+      required: true,
+      trim: true,
+      lowercase: true,
+    },
+    phone: {
+      type: String,
+      trim: true,
+      default: '',
+    },
+    logo: {
+      type: String,
+      trim: true,
+      default: '',
+    },
+    status: {
+      type: String,
+      enum: ['Active', 'Inactive'],
+      default: 'Active',
+    },
+  },
+  { timestamps: true }
+)
+
+export default mongoose.model('Stall', stallSchema)

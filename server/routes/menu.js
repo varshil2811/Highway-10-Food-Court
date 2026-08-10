@@ -2,6 +2,7 @@ import { Router } from 'express'
 import fs from 'fs'
 import path from 'path'
 import { fileURLToPath } from 'url'
+import multer from 'multer'
 import MenuItem from '../models/MenuItem.js'
 import MenuMetadata from '../models/MenuMetadata.js'
 
@@ -10,26 +11,33 @@ const __dirname = path.dirname(__filename)
 
 const router = Router()
 
-// Initialize in-memory store from JSON
-let memoryStore = []
-let memoryMetadata = { stalls: [], categories: [], galleryCategories: [] }
-try {
-  const menuPath = path.join(__dirname, '../../client/src/data/menu.json')
-  const menuData = JSON.parse(fs.readFileSync(menuPath, 'utf-8'))
-  memoryMetadata.stalls = menuData.stalls || []
-  memoryMetadata.categories = menuData.categories || []
-  memoryMetadata.galleryCategories = (menuData.galleryCategories && menuData.galleryCategories.length > 0) ? menuData.galleryCategories : [
-    { id: 'ambience', name: 'Ambience' },
-    { id: 'food', name: 'Food' },
-    { id: 'events-nights', name: 'Events/Nights' }
-  ]
-  memoryStore = menuData.items.map(item => ({
-    ...item,
-    _id: item.id || `mem-${Date.now()}-${Math.random()}`
-  }))
-} catch (err) {
-  console.warn('Could not load initial memory store from menu.json', err.message)
+// Ensure uploads directory exists
+const uploadDir = path.join(__dirname, '../public/uploads')
+if (!fs.existsSync(uploadDir)) {
+  fs.mkdirSync(uploadDir, { recursive: true })
 }
+
+const storage = multer.diskStorage({
+  destination: function (req, file, cb) {
+    cb(null, uploadDir)
+  },
+  filename: function (req, file, cb) {
+    const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9)
+    cb(null, uniqueSuffix + path.extname(file.originalname))
+  }
+})
+
+const upload = multer({ 
+  storage,
+  limits: { fileSize: 5 * 1024 * 1024 },
+  fileFilter: (req, file, cb) => {
+    if (file.mimetype.startsWith('image/')) {
+      cb(null, true)
+    } else {
+      cb(new Error('Only images are allowed'))
+    }
+  }
+})
 
 // Middleware to check admin password for mutating routes
 const requireAdmin = (req, res, next) => {
@@ -45,20 +53,38 @@ const requireAdmin = (req, res, next) => {
 
 // Helper to get metadata document
 async function getMenuMetadata() {
-  if (process.env.MONGODB_URI && globalThis.__dbReady) {
-    let metadata = await MenuMetadata.findOne({ type: 'config' })
-    if (!metadata) {
-      metadata = new MenuMetadata({
-        type: 'config',
-        stalls: memoryMetadata.stalls,
-        categories: memoryMetadata.categories,
-        galleryCategories: memoryMetadata.galleryCategories || []
-      })
-      await metadata.save()
+  let metadata = await MenuMetadata.findOne({ type: 'config' })
+  if (!metadata) {
+    // Read from menu.json to seed defaults if DB is completely empty
+    let seedStalls = []
+    let seedCategories = []
+    let seedGalleryCategories = [
+      { id: 'ambience', name: 'Ambience' },
+      { id: 'food', name: 'Food' },
+      { id: 'events-nights', name: 'Events/Nights' }
+    ]
+    
+    try {
+      const menuPath = path.join(__dirname, '../../client/src/data/menu.json')
+      const menuData = JSON.parse(fs.readFileSync(menuPath, 'utf-8'))
+      seedStalls = menuData.stalls || []
+      seedCategories = menuData.categories || []
+      if (menuData.galleryCategories && menuData.galleryCategories.length > 0) {
+        seedGalleryCategories = menuData.galleryCategories
+      }
+    } catch (err) {
+      console.warn('Could not read menu.json for seeding', err.message)
     }
-    return metadata
+
+    metadata = new MenuMetadata({
+      type: 'config',
+      stalls: seedStalls,
+      categories: seedCategories,
+      galleryCategories: seedGalleryCategories
+    })
+    await metadata.save()
   }
-  return memoryMetadata
+  return metadata
 }
 
 // GET metadata (stalls and categories)
@@ -77,21 +103,13 @@ router.post('/metadata/stall', requireAdmin, async (req, res) => {
     const { id, name } = req.body
     if (!id || !name) return res.status(400).json({ error: 'id and name required' })
 
-    if (process.env.MONGODB_URI && globalThis.__dbReady) {
-      const metadata = await getMenuMetadata()
-      if (metadata.stalls.some(s => s.id === id)) {
-        return res.status(400).json({ error: 'Stall already exists' })
-      }
-      metadata.stalls.push({ id, name })
-      await metadata.save()
-      res.status(201).json(metadata.stalls)
-    } else {
-      if (memoryMetadata.stalls.some(s => s.id === id)) {
-        return res.status(400).json({ error: 'Stall already exists' })
-      }
-      memoryMetadata.stalls.push({ id, name })
-      res.status(201).json(memoryMetadata.stalls)
+    const metadata = await getMenuMetadata()
+    if (metadata.stalls.some(s => s.id === id)) {
+      return res.status(400).json({ error: 'Stall already exists' })
     }
+    metadata.stalls.push({ id, name })
+    await metadata.save()
+    res.status(201).json(metadata.stalls)
   } catch (error) {
     res.status(400).json({ error: error.message })
   }
@@ -103,21 +121,13 @@ router.post('/metadata/category', requireAdmin, async (req, res) => {
     const { id, name } = req.body
     if (!id || !name) return res.status(400).json({ error: 'id and name required' })
 
-    if (process.env.MONGODB_URI && globalThis.__dbReady) {
-      const metadata = await getMenuMetadata()
-      if (metadata.categories.some(c => c.id === id)) {
-        return res.status(400).json({ error: 'Category already exists' })
-      }
-      metadata.categories.push({ id, name })
-      await metadata.save()
-      res.status(201).json(metadata.categories)
-    } else {
-      if (memoryMetadata.categories.some(c => c.id === id)) {
-        return res.status(400).json({ error: 'Category already exists' })
-      }
-      memoryMetadata.categories.push({ id, name })
-      res.status(201).json(memoryMetadata.categories)
+    const metadata = await getMenuMetadata()
+    if (metadata.categories.some(c => c.id === id)) {
+      return res.status(400).json({ error: 'Category already exists' })
     }
+    metadata.categories.push({ id, name })
+    await metadata.save()
+    res.status(201).json(metadata.categories)
   } catch (error) {
     res.status(400).json({ error: error.message })
   }
@@ -129,15 +139,10 @@ router.delete('/metadata/stall/:id', requireAdmin, async (req, res) => {
     const { id } = req.params
     if (id === 'all') return res.status(400).json({ error: 'Cannot delete the "all" stall' })
 
-    if (process.env.MONGODB_URI && globalThis.__dbReady) {
-      const metadata = await getMenuMetadata()
-      metadata.stalls = metadata.stalls.filter(s => s.id !== id)
-      await metadata.save()
-      res.json(metadata.stalls)
-    } else {
-      memoryMetadata.stalls = memoryMetadata.stalls.filter(s => s.id !== id)
-      res.json(memoryMetadata.stalls)
-    }
+    const metadata = await getMenuMetadata()
+    metadata.stalls = metadata.stalls.filter(s => s.id !== id)
+    await metadata.save()
+    res.json(metadata.stalls)
   } catch (error) {
     res.status(500).json({ error: error.message })
   }
@@ -149,15 +154,10 @@ router.delete('/metadata/category/:id', requireAdmin, async (req, res) => {
     const { id } = req.params
     if (id === 'all') return res.status(400).json({ error: 'Cannot delete the "all" category' })
 
-    if (process.env.MONGODB_URI && globalThis.__dbReady) {
-      const metadata = await getMenuMetadata()
-      metadata.categories = metadata.categories.filter(c => c.id !== id)
-      await metadata.save()
-      res.json(metadata.categories)
-    } else {
-      memoryMetadata.categories = memoryMetadata.categories.filter(c => c.id !== id)
-      res.json(memoryMetadata.categories)
-    }
+    const metadata = await getMenuMetadata()
+    metadata.categories = metadata.categories.filter(c => c.id !== id)
+    await metadata.save()
+    res.json(metadata.categories)
   } catch (error) {
     res.status(500).json({ error: error.message })
   }
@@ -169,23 +169,14 @@ router.post('/metadata/galleryCategory', requireAdmin, async (req, res) => {
     const { id, name } = req.body
     if (!id || !name) return res.status(400).json({ error: 'id and name required' })
 
-    if (process.env.MONGODB_URI && globalThis.__dbReady) {
-      const metadata = await getMenuMetadata()
-      if (!metadata.galleryCategories) metadata.galleryCategories = []
-      if (metadata.galleryCategories.some(c => c.id === id)) {
-        return res.status(400).json({ error: 'Gallery category already exists' })
-      }
-      metadata.galleryCategories.push({ id, name })
-      await metadata.save()
-      res.status(201).json(metadata.galleryCategories)
-    } else {
-      if (!memoryMetadata.galleryCategories) memoryMetadata.galleryCategories = []
-      if (memoryMetadata.galleryCategories.some(c => c.id === id)) {
-        return res.status(400).json({ error: 'Gallery category already exists' })
-      }
-      memoryMetadata.galleryCategories.push({ id, name })
-      res.status(201).json(memoryMetadata.galleryCategories)
+    const metadata = await getMenuMetadata()
+    if (!metadata.galleryCategories) metadata.galleryCategories = []
+    if (metadata.galleryCategories.some(c => c.id === id)) {
+      return res.status(400).json({ error: 'Gallery category already exists' })
     }
+    metadata.galleryCategories.push({ id, name })
+    await metadata.save()
+    res.status(201).json(metadata.galleryCategories)
   } catch (error) {
     res.status(400).json({ error: error.message })
   }
@@ -197,19 +188,12 @@ router.delete('/metadata/galleryCategory/:id', requireAdmin, async (req, res) =>
     const { id } = req.params
     if (id === 'all') return res.status(400).json({ error: 'Cannot delete the "all" category' })
 
-    if (process.env.MONGODB_URI && globalThis.__dbReady) {
-      const metadata = await getMenuMetadata()
-      if (metadata.galleryCategories) {
-        metadata.galleryCategories = metadata.galleryCategories.filter(c => c.id !== id)
-        await metadata.save()
-      }
-      res.json(metadata.galleryCategories || [])
-    } else {
-      if (memoryMetadata.galleryCategories) {
-        memoryMetadata.galleryCategories = memoryMetadata.galleryCategories.filter(c => c.id !== id)
-      }
-      res.json(memoryMetadata.galleryCategories || [])
+    const metadata = await getMenuMetadata()
+    if (metadata.galleryCategories) {
+      metadata.galleryCategories = metadata.galleryCategories.filter(c => c.id !== id)
+      await metadata.save()
     }
+    res.json(metadata.galleryCategories || [])
   } catch (error) {
     res.status(500).json({ error: error.message })
   }
@@ -218,51 +202,49 @@ router.delete('/metadata/galleryCategory/:id', requireAdmin, async (req, res) =>
 // GET all menu items
 router.get('/', async (req, res) => {
   try {
-    if (process.env.MONGODB_URI && globalThis.__dbReady) {
-      const items = await MenuItem.find().sort({ createdAt: -1 })
-      res.json(items)
-    } else {
-      res.json(memoryStore)
-    }
+    const items = await MenuItem.find().sort({ createdAt: -1 })
+    res.json(items)
   } catch (error) {
     res.status(500).json({ error: error.message })
   }
 })
 
 // POST new menu item
-router.post('/', requireAdmin, async (req, res) => {
+router.post('/', requireAdmin, upload.single('image'), async (req, res) => {
   try {
-    if (process.env.MONGODB_URI && globalThis.__dbReady) {
-      const newItem = new MenuItem(req.body)
-      await newItem.save()
-      res.status(201).json(newItem)
-    } else {
-      const newItem = { ...req.body, _id: `mem-${Date.now()}` }
-      memoryStore.unshift(newItem)
-      res.status(201).json(newItem)
+    const data = { ...req.body }
+    // Convert string booleans to actual booleans
+    if (data.veg !== undefined) data.veg = data.veg === 'true'
+    if (data.jain !== undefined) data.jain = data.jain === 'true'
+    if (data.bestseller !== undefined) data.bestseller = data.bestseller === 'true'
+
+    if (req.file) {
+      data.image = `/uploads/${req.file.filename}`
     }
+
+    const newItem = new MenuItem(data)
+    await newItem.save()
+    res.status(201).json(newItem)
   } catch (error) {
     res.status(400).json({ error: error.message })
   }
 })
 
 // PUT update menu item
-router.put('/:id', requireAdmin, async (req, res) => {
+router.put('/:id', requireAdmin, upload.single('image'), async (req, res) => {
   try {
-    if (process.env.MONGODB_URI && globalThis.__dbReady) {
-      const updatedItem = await MenuItem.findByIdAndUpdate(
-        req.params.id,
-        req.body,
-        { new: true, runValidators: true }
-      )
-      if (!updatedItem) return res.status(404).json({ error: 'Item not found' })
-      res.json(updatedItem)
-    } else {
-      const idx = memoryStore.findIndex(i => i._id === req.params.id || i.id === req.params.id)
-      if (idx === -1) return res.status(404).json({ error: 'Item not found' })
-      memoryStore[idx] = { ...memoryStore[idx], ...req.body }
-      res.json(memoryStore[idx])
+    const data = { ...req.body }
+    if (data.veg !== undefined) data.veg = data.veg === 'true'
+    if (data.jain !== undefined) data.jain = data.jain === 'true'
+    if (data.bestseller !== undefined) data.bestseller = data.bestseller === 'true'
+
+    if (req.file) {
+      data.image = `/uploads/${req.file.filename}`
     }
+
+    const updated = await MenuItem.findByIdAndUpdate(req.params.id, data, { new: true })
+    if (!updated) return res.status(404).json({ error: 'Not found' })
+    res.json(updated)
   } catch (error) {
     res.status(400).json({ error: error.message })
   }
@@ -271,16 +253,9 @@ router.put('/:id', requireAdmin, async (req, res) => {
 // DELETE menu item
 router.delete('/:id', requireAdmin, async (req, res) => {
   try {
-    if (process.env.MONGODB_URI && globalThis.__dbReady) {
-      const deletedItem = await MenuItem.findByIdAndDelete(req.params.id)
-      if (!deletedItem) return res.status(404).json({ error: 'Item not found' })
-      res.json({ message: 'Item deleted successfully' })
-    } else {
-      const initialLength = memoryStore.length
-      memoryStore = memoryStore.filter(i => i._id !== req.params.id && i.id !== req.params.id)
-      if (memoryStore.length === initialLength) return res.status(404).json({ error: 'Item not found' })
-      res.json({ message: 'Item deleted successfully' })
-    }
+    const deletedItem = await MenuItem.findByIdAndDelete(req.params.id)
+    if (!deletedItem) return res.status(404).json({ error: 'Item not found' })
+    res.json({ message: 'Item deleted successfully' })
   } catch (error) {
     res.status(500).json({ error: error.message })
   }

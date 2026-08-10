@@ -2,6 +2,7 @@ import { useState, useEffect, type FormEvent, useRef } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import Seo from '../components/Seo'
 import ExitSection from '../components/ExitSection'
+import EmailMgmtTab from '../components/EmailMgmtTab'
 
 function useVerticalScroll<T extends HTMLElement>() {
   const ref = useRef<T>(null)
@@ -30,6 +31,7 @@ type MenuItem = {
   jain: boolean
   bestseller: boolean
   price: string
+w  image ?: string
 }
 
 type GalleryItem = {
@@ -45,10 +47,17 @@ type MetadataItem = {
   name: string
 }
 
+type ReviewItem = {
+  _id: string
+  name: string
+  quote: string
+  meta: string
+}
+
 export default function Admin() {
   const [password, setPassword] = useState('')
   const [isAuthenticated, setIsAuthenticated] = useState(false)
-  const [activeTab, setActiveTab] = useState<'menu' | 'gallery'>('menu')
+  const [activeTab, setActiveTab] = useState<'menu' | 'gallery' | 'reviews' | 'emails'>('menu')
 
   const stallsScrollRef = useVerticalScroll<HTMLUListElement>()
   const categoriesScrollRef = useVerticalScroll<HTMLUListElement>()
@@ -79,7 +88,7 @@ export default function Admin() {
   // Menu Form
   const [menuForm, setMenuForm] = useState({
     name: '', description: '', stall: 'kulchas', category: 'veg',
-    veg: false, jain: false, bestseller: false, price: '₹ —',
+    veg: false, jain: false, bestseller: false, price: '0', file: null as File | null
   })
 
   const menuFormRef = useRef<HTMLDivElement>(null)
@@ -89,6 +98,12 @@ export default function Admin() {
   const [galleryForm, setGalleryForm] = useState({
     alt: '', category: '', file: null as File | null
   })
+
+  // Reviews State
+  const [reviews, setReviews] = useState<ReviewItem[]>([])
+  const [reviewsLoading, setReviewsLoading] = useState(false)
+  const [reviewsError, setReviewsError] = useState('')
+  const [reviewForm, setReviewForm] = useState({ name: '', quote: '', meta: '' })
 
   useEffect(() => {
     if (galleryCategories.length > 0 && !galleryForm.category) {
@@ -115,12 +130,25 @@ export default function Admin() {
       fetchMetadata()
       if (activeTab === 'menu') fetchMenu()
       if (activeTab === 'gallery') fetchGallery()
+      if (activeTab === 'reviews') fetchReviews(true)
     }
+  }, [isAuthenticated, activeTab])
+
+  // Auto-poll reviews in the background when on the reviews tab
+  useEffect(() => {
+    let interval: ReturnType<typeof setInterval>
+    if (isAuthenticated && activeTab === 'reviews') {
+      interval = setInterval(() => {
+        fetchReviews(false) // Fetch without triggering the loading spinner to prevent flicker
+      }, 5000) // Poll every 5 seconds
+    }
+    return () => clearInterval(interval)
   }, [isAuthenticated, activeTab])
 
   // --- MENU LOGIC ---
   async function fetchMenu() {
     try {
+      setMenuError('')
       setMenuLoading(true)
       const res = await fetch('/api/menu')
       const data = await res.json()
@@ -144,7 +172,7 @@ export default function Admin() {
     setMenuForm({
       name: item.name, description: item.description || '', stall: item.stall,
       category: item.category, veg: item.veg, jain: item.jain,
-      bestseller: item.bestseller, price: item.price || '₹ —',
+      bestseller: item.bestseller, price: item.price || '0', file: null
     })
     setTimeout(() => {
       menuFormRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' })
@@ -155,7 +183,7 @@ export default function Admin() {
     setEditingMenu(null)
     setMenuForm({
       name: '', description: '', stall: 'kulchas', category: 'veg',
-      veg: false, jain: false, bestseller: false, price: '₹ —',
+      veg: false, jain: false, bestseller: false, price: '0', file: null
     })
   }
 
@@ -165,18 +193,42 @@ export default function Admin() {
     try {
       const url = editingMenu ? `/api/menu/${editingMenu._id}` : '/api/menu'
       const method = editingMenu ? 'PUT' : 'POST'
+
+      const formData = new FormData()
+      formData.append('name', menuForm.name)
+      formData.append('description', menuForm.description)
+      formData.append('stall', menuForm.stall)
+      formData.append('category', menuForm.category)
+      formData.append('price', menuForm.price)
+      formData.append('veg', menuForm.veg.toString())
+      formData.append('jain', menuForm.jain.toString())
+      formData.append('bestseller', menuForm.bestseller.toString())
+      if (menuForm.file) {
+        formData.append('image', menuForm.file)
+      }
+
       const res = await fetch(url, {
         method,
-        headers: { 'Content-Type': 'application/json', 'x-admin-password': password },
-        body: JSON.stringify(menuForm)
+        headers: { 'x-admin-password': password },
+        body: formData
       })
-      const data = await res.json()
-      if (!res.ok) throw new Error(data.error || 'Failed to save item')
+      if (!res.ok) {
+        let errorMsg = 'Failed to save item'
+        try {
+          const data = await res.json()
+          errorMsg = data.error || errorMsg
+        } catch {
+          errorMsg = `Server error: ${res.status} ${res.statusText}`
+        }
+        throw new Error(errorMsg)
+      }
       handleMenuCancelEdit()
       fetchMenu()
       window.scrollTo({ top: 0, behavior: 'smooth' })
     } catch (err) {
-      setMenuError(err instanceof Error ? err.message : 'Error saving item')
+      let msg = err instanceof Error ? err.message : 'Error saving item'
+      if (msg === 'Failed to fetch') msg = 'Network error: Failed to reach the server. Is the backend running?'
+      setMenuError(msg)
     }
   }
 
@@ -314,9 +366,37 @@ export default function Admin() {
     }
   }
 
+  // --- REVIEWS LOGIC ---
+  async function fetchReviews(showLoading = true) {
+    try {
+      setReviewsError('')
+      if (showLoading) setReviewsLoading(true)
+      const res = await fetch('/api/reviews')
+      const data = await res.json()
+      if (!res.ok) throw new Error(data.error || 'Failed to fetch')
+      setReviews(data)
+    } catch (err) {
+      setReviewsError(err instanceof Error ? err.message : 'Error fetching reviews')
+    } finally {
+      if (showLoading) setReviewsLoading(false)
+    }
+  }
+
+  async function handleReviewDelete(id: string) {
+    if (!window.confirm('Are you sure you want to delete this review?')) return
+    try {
+      const res = await fetch(`/api/reviews/${id}`, { method: 'DELETE', headers: { 'x-admin-password': password } })
+      if (!res.ok) throw new Error('Failed to delete')
+      fetchReviews()
+    } catch (err) {
+      setReviewsError(err instanceof Error ? err.message : 'Error deleting review')
+    }
+  }
+
   // --- GALLERY LOGIC ---
   async function fetchGallery() {
     try {
+      setGalleryError('')
       setGalleryLoading(true)
       const res = await fetch('/api/gallery')
       const data = await res.json()
@@ -345,15 +425,25 @@ export default function Admin() {
         headers: { 'x-admin-password': password },
         body: fd
       })
-      const data = await res.json()
-      if (!res.ok) throw new Error(data.error || 'Failed to upload image')
+      if (!res.ok) {
+        let errorMsg = 'Failed to upload image'
+        try {
+          const data = await res.json()
+          errorMsg = data.error || errorMsg
+        } catch {
+          errorMsg = `Server error: ${res.status} ${res.statusText}`
+        }
+        throw new Error(errorMsg)
+      }
 
       setGalleryForm({ alt: '', category: 'Ambience', file: null })
       if (fileInputRef.current) fileInputRef.current.value = ''
       fetchGallery()
       window.scrollTo({ top: 0, behavior: 'smooth' })
     } catch (err) {
-      setGalleryError(err instanceof Error ? err.message : 'Error uploading image')
+      let msg = err instanceof Error ? err.message : 'Error uploading image'
+      if (msg === 'Failed to fetch') msg = 'Network error: Failed to reach the server. Is the backend running?'
+      setGalleryError(msg)
     }
   }
 
@@ -425,6 +515,18 @@ export default function Admin() {
           >
             Gallery Images
           </button>
+          <button
+            onClick={() => setActiveTab('reviews')}
+            className={`rounded-lg px-6 py-2.5 font-display text-xs font-semibold uppercase tracking-wider transition-all duration-300 ${activeTab === 'reviews' ? 'bg-[rgba(212,175,55,0.15)] text-route-yellow shadow-sm' : 'text-dusk-grey hover:text-paper-cream hover:bg-white/5'}`}
+          >
+            Reviews
+          </button>
+          <button
+            onClick={() => setActiveTab('emails')}
+            className={`rounded-lg px-6 py-2.5 font-display text-xs font-semibold uppercase tracking-wider transition-all duration-300 ${activeTab === 'emails' ? 'bg-[rgba(212,175,55,0.15)] text-route-yellow shadow-sm' : 'text-dusk-grey hover:text-paper-cream hover:bg-white/5'}`}
+          >
+            Email Mgmt
+          </button>
         </div>
 
         <AnimatePresence mode="wait">
@@ -442,7 +544,7 @@ export default function Admin() {
                   <h2 className="font-serif text-2xl font-bold tracking-tight text-route-yellow">Menu Items</h2>
                   <button onClick={fetchMenu} className="text-sm text-dusk-grey underline hover:text-paper-cream">Refresh</button>
                 </div>
-                {menuError && <div className="mb-4 rounded-xl bg-red-900/20 p-4 text-sm text-red-400 border border-red-500/20">{menuError}</div>}
+
                 {menuLoading ? <p className="text-dusk-grey">Loading items...</p> : (
                   <div className="space-y-4">
                     <AnimatePresence>
@@ -455,12 +557,17 @@ export default function Admin() {
                           key={item._id}
                           className="lux-card !p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-4"
                         >
-                          <div>
-                            <h4 className="font-display font-bold text-paper-cream">{item.name}</h4>
-                            <p className="text-xs text-dusk-grey mt-1">
-                              {stalls.find(s => s.id === item.stall)?.name || item.stall} • {categories.find(c => c.id === item.category)?.name || item.category}
-                            </p>
-                            <p className="text-xs text-paper-cream/60 mt-1">{item.price}</p>
+                          <div className="flex items-center gap-4">
+                            {item.image && (
+                              <img src={item.image} alt={item.name} className="h-16 w-16 shrink-0 rounded-xl object-cover border border-[rgba(255,255,255,0.1)]" />
+                            )}
+                            <div>
+                              <h4 className="font-display font-bold text-paper-cream">{item.name}</h4>
+                              <p className="text-xs text-dusk-grey mt-1">
+                                {stalls.find(s => s.id === item.stall)?.name || item.stall} • {categories.find(c => c.id === item.category)?.name || item.category}
+                              </p>
+                              <p className="text-xs text-paper-cream/60 mt-1">{item.price}</p>
+                            </div>
                           </div>
                           <div className="flex gap-2">
                             <button onClick={() => handleMenuEdit(item)} className="rounded-lg bg-[rgba(212,175,55,0.1)] px-3 py-1.5 text-xs font-semibold text-route-yellow hover:bg-[rgba(212,175,55,0.2)]">Edit</button>
@@ -477,6 +584,8 @@ export default function Admin() {
                   <h3 className="mb-5 font-serif text-xl font-bold tracking-tight text-route-yellow">
                     {editingMenu ? 'Edit Item' : 'Add Menu Item'}
                   </h3>
+                  {menuError && <div className="mb-4 rounded-xl bg-red-900/20 p-4 text-sm text-red-400 border border-red-500/20">{menuError}</div>}
+
                   <form onSubmit={handleMenuSubmit} className="space-y-4">
                     <div>
                       <label className="mb-1.5 block font-display text-[10px] font-semibold uppercase tracking-[0.18em] text-dusk-grey">Name</label>
@@ -503,6 +612,10 @@ export default function Admin() {
                     <div>
                       <label className="mb-1.5 block font-display text-[10px] font-semibold uppercase tracking-[0.18em] text-dusk-grey">Price</label>
                       <input name="price" value={menuForm.price} onChange={handleMenuInputChange} className={inputClass} />
+                    </div>
+                    <div>
+                      <label className="mb-1.5 block font-display text-[10px] font-semibold uppercase tracking-[0.18em] text-dusk-grey">Image (Optional)</label>
+                      <input type="file" accept="image/*" onChange={(e) => setMenuForm(p => ({ ...p, file: e.target.files?.[0] || null }))} className="block w-full text-sm text-dusk-grey file:mr-4 file:rounded-xl file:border-0 file:bg-[rgba(212,175,55,0.15)] file:px-4 file:py-2.5 file:font-display file:text-xs file:font-semibold file:text-route-yellow hover:file:bg-[rgba(212,175,55,0.25)]" />
                     </div>
                     <div className="flex flex-wrap gap-4 pt-2">
                       <label className="flex items-center gap-2 text-sm text-paper-cream cursor-pointer">
@@ -704,6 +817,55 @@ export default function Admin() {
                 </div>
               </aside>
             </motion.div>
+          )}
+
+          {activeTab === 'reviews' && (
+            <motion.div
+              key="reviews"
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -10 }}
+              transition={{ duration: 0.3 }}
+              className="flex flex-col gap-8 lg:grid lg:grid-cols-[1fr_400px]"
+            >
+              <div>
+                <div className="mb-5 flex items-center justify-between">
+                  <h2 className="font-serif text-2xl font-bold tracking-tight text-route-yellow">Reviews</h2>
+                  <button onClick={fetchReviews} className="text-sm text-dusk-grey underline hover:text-paper-cream">Refresh</button>
+                </div>
+
+                {reviewsError && <div className="mb-4 rounded-xl bg-red-900/20 p-4 text-sm text-red-400 border border-red-500/20">{reviewsError}</div>}
+                {reviewsLoading ? <p className="text-dusk-grey">Loading reviews...</p> : (
+                  <div className="space-y-4">
+                    <AnimatePresence>
+                      {reviews.map(item => (
+                        <motion.div
+                          initial={{ opacity: 0, scale: 0.95 }}
+                          animate={{ opacity: 1, scale: 1 }}
+                          exit={{ opacity: 0, scale: 0.95 }}
+                          transition={{ duration: 0.2 }}
+                          key={item._id}
+                          className="lux-card !p-4 flex flex-col justify-between gap-4"
+                        >
+                          <div>
+                            <p className="font-serif text-lg font-bold italic text-paper-cream/90">"{item.quote}"</p>
+                            <p className="font-display font-bold text-route-yellow mt-2">{item.name}</p>
+                            <p className="text-xs text-dusk-grey mt-1">{item.meta}</p>
+                          </div>
+                          <div className="flex gap-2 self-end">
+                            <button onClick={() => handleReviewDelete(item._id)} className="rounded-lg bg-red-500/10 px-3 py-1.5 text-xs font-semibold text-red-400 hover:bg-red-500/20">Delete</button>
+                          </div>
+                        </motion.div>
+                      ))}
+                    </AnimatePresence>
+                  </div>
+                )}
+              </div>
+            </motion.div>
+          )}
+
+          {activeTab === 'emails' && (
+            <EmailMgmtTab key="emails" password={password} />
           )}
         </AnimatePresence>
 

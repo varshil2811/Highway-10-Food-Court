@@ -59,13 +59,16 @@
     width: 6px;
     height: 6px;
   }
+
   ::-webkit-scrollbar-track {
     background: transparent;
   }
+
   ::-webkit-scrollbar-thumb {
     background: rgba(255, 255, 255, 0.1);
     border-radius: 10px;
   }
+
   ::-webkit-scrollbar-thumb:hover {
     background: rgba(212, 175, 55, 0.4);
   }
@@ -140,6 +143,11 @@
     color-scheme: dark;
   }
 
+  .lux-input option {
+    background-color: var(--color-surface);
+    color: var(--color-paper-cream);
+  }
+
   .lux-input:focus {
     border-color: rgba(212, 175, 55, 0.55);
     background: rgba(0, 0, 0, 0.4);
@@ -168,6 +176,7 @@
   .hide-scrollbar::-webkit-scrollbar {
     display: none;
   }
+
   .hide-scrollbar {
     -ms-overflow-style: none;
     scrollbar-width: none;

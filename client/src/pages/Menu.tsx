@@ -13,6 +13,7 @@ type MenuItem = {
   jain: boolean
   bestseller: boolean
   price: string
+  image?: string
 }
 
 type MetadataItem = { id: string, name: string }
@@ -261,13 +262,14 @@ export default function Menu() {
               <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4">
                 {filtered.map((item) => (
                   <MenuCard
-                    key={item.id}
+                    key={item.id || item._id}
                     name={item.name}
                     description={item.description}
                     veg={item.veg}
                     jain={item.jain}
                     price={item.price}
                     bestseller={item.bestseller}
+                    image={item.image}
                   />
                 ))}
               </div>

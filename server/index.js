@@ -6,6 +6,8 @@ import reservationsRouter from './routes/reservations.js'
 import contactRouter from './routes/contact.js'
 import menuRouter from './routes/menu.js'
 import galleryRouter from './routes/gallery.js'
+import reviewsRouter from './routes/reviews.js'
+import adminEmailsRouter from './routes/adminEmails.js'
 import path from 'path'
 import { fileURLToPath } from 'url'
 
@@ -34,6 +36,8 @@ app.use('/api/reservations', reservationsRouter)
 app.use('/api/contact', contactRouter)
 app.use('/api/menu', menuRouter)
 app.use('/api/gallery', galleryRouter)
+app.use('/api/reviews', reviewsRouter)
+app.use('/api/admin/emails', adminEmailsRouter)
 
 async function start() {
   const uri = process.env.MONGODB_URI
@@ -49,9 +53,25 @@ async function start() {
     console.warn('No MONGODB_URI — using in-memory store')
   }
 
-  app.listen(PORT, () => {
+  app.listen(PORT, '0.0.0.0', () => {
     console.log(`Highway 10 API on http://localhost:${PORT}`)
   })
 }
 
 start()
+
+// Trigger nodemon restart
+
+// Trigger nodemon restart
+
+// Restart nodemon again
+
+// Nodemon reload
+
+// Restart nodemon again
+
+// nodemon reload 3
+
+// nodemon reload 4
+
+// Triggering restart again for new password

@@ -1,55 +1,38 @@
 import { Router } from 'express'
 import Reservation from '../models/Reservation.js'
-import { sendNotification } from '../utils/notify.js'
+import { processNewReservation } from '../services/ReservationService.js'
 
 const router = Router()
-const memoryStore = []
 
+// POST create a reservation
 router.post('/', async (req, res) => {
   try {
-    const { name, phone, partySize, date, time, notes = '' } = req.body
+    const newReservation = new Reservation(req.body)
+    const saved = await newReservation.save()
+    
+    // Call the email service asynchronously so it doesn't block the API response
+    processNewReservation(saved).catch(err => console.error('[Reservations Router] Background email error:', err))
+    
+    res.status(201).json(saved)
+  } catch (error) {
+    res.status(400).json({ error: error.message })
+  }
+})
 
-    if (!name || !phone || !partySize || !date || !time) {
-      return res.status(400).json({ error: 'Missing required fields' })
-    }
+// GET all reservations (admin only)
+router.get('/', async (req, res) => {
+  const adminPassword = process.env.ADMIN_PASSWORD || 'highway10admin'
+  const providedPassword = req.headers['x-admin-password']
 
-    const payload = {
-      name: String(name).trim(),
-      phone: String(phone).trim(),
-      partySize: Number(partySize),
-      date: String(date),
-      time: String(time),
-      notes: String(notes || ''),
-    }
+  if (providedPassword !== adminPassword) {
+    return res.status(401).json({ error: 'Unauthorized' })
+  }
 
-    let saved
-    if (process.env.MONGODB_URI && globalThis.__dbReady) {
-      saved = await Reservation.create(payload)
-    } else {
-      saved = { ...payload, _id: `mem-${Date.now()}`, createdAt: new Date() }
-      memoryStore.push(saved)
-    }
-
-    await sendNotification({
-      subject: `Highway 10 reservation — ${payload.name}`,
-      text: [
-        `Name: ${payload.name}`,
-        `Phone: ${payload.phone}`,
-        `Party size: ${payload.partySize}`,
-        `Date: ${payload.date}`,
-        `Time: ${payload.time}`,
-        `Notes: ${payload.notes || '—'}`,
-      ].join('\n'),
-    })
-
-    res.status(201).json({
-      ok: true,
-      message: "We'll call to confirm your table.",
-      id: saved._id,
-    })
-  } catch (err) {
-    console.error(err)
-    res.status(500).json({ error: 'Could not save reservation' })
+  try {
+    const reservations = await Reservation.find().sort({ createdAt: -1 })
+    res.json(reservations)
+  } catch (error) {
+    res.status(500).json({ error: error.message })
   }
 })
 

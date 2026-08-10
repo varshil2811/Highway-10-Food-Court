@@ -3,6 +3,7 @@ import { Link, NavLink, useLocation } from 'react-router-dom'
 import { motion, useScroll, useMotionValueEvent } from 'framer-motion'
 import site from '../data/site.json'
 import Magnetic from './Magnetic'
+import Logo from './Logo'
 
 const links = [
   { to: '/', label: 'Home' },
@@ -48,25 +49,7 @@ export default function Navbar() {
       <div className="mx-auto flex max-w-6xl items-center justify-between gap-4 px-4 py-4 md:px-8 md:pl-20">
         <Magnetic strength={0.15}>
           <Link to="/" className="flex items-center gap-3 group" onClick={() => { setOpen(false); }}>
-            <svg width="36" height="40" viewBox="0 0 28 32" aria-hidden className="transition-transform duration-500 group-hover:scale-110 group-hover:rotate-6">
-              <path
-                d="M14 1.5L25.5 8V24L14 30.5L2.5 24V8L14 1.5Z"
-                fill="#D4AF37"
-                stroke="#0B0B0B"
-                strokeWidth="1"
-              />
-              <text
-                x="14"
-                y="19"
-                textAnchor="middle"
-                fill="#0B0B0B"
-                fontSize="8"
-                fontFamily="Georgia, serif"
-                fontWeight="700"
-              >
-                10
-              </text>
-            </svg>
+            <Logo className="w-11 h-auto text-paper-cream transition-transform duration-500 group-hover:scale-105" />
             <div>
               <div className="font-serif text-lg font-bold leading-none tracking-tight text-paper-cream">
                 Highway 10

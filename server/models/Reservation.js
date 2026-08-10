@@ -8,6 +8,9 @@ const reservationSchema = new mongoose.Schema(
     date: { type: String, required: true },
     time: { type: String, required: true },
     notes: { type: String, default: '' },
+    customerEmail: { type: String, default: '' },
+    reservationType: { type: String, default: 'Table Reservation' },
+    preferredStall: { type: String, default: 'Any' },
   },
   { timestamps: true }
 )

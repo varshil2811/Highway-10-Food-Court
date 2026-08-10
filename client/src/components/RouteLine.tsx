@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react'
 import { motion, useScroll, useSpring, useTransform } from 'framer-motion'
+import Logo from './Logo'
 
 function usePrefersReducedMotion() {
   const [reduced, setReduced] = useState(false)
@@ -36,25 +37,7 @@ export default function RouteLine() {
             style={{ scaleY: progress, height: '100%', width: 2, left: -0.5 }}
           />
           <motion.div className="absolute left-1/2 -translate-x-1/2" style={{ top: markerTop }}>
-            <svg width="28" height="32" viewBox="0 0 28 32" className="drop-shadow-[0_4px_12px_rgba(212,175,55,0.35)]">
-              <path
-                d="M14 1.5L25.5 8V24L14 30.5L2.5 24V8L14 1.5Z"
-                fill="#D4AF37"
-                stroke="#0B0B0B"
-                strokeWidth="1.5"
-              />
-              <text
-                x="14"
-                y="19"
-                textAnchor="middle"
-                fill="#0B0B0B"
-                fontSize="9"
-                fontFamily="Georgia, serif"
-                fontWeight="700"
-              >
-                10
-              </text>
-            </svg>
+            <Logo className="w-8 h-auto drop-shadow-[0_4px_12px_rgba(212,175,55,0.35)]" />
           </motion.div>
         </div>
       </div>

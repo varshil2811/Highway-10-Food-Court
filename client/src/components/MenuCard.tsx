@@ -5,12 +5,20 @@ type Props = {
   jain?: boolean
   price: string
   bestseller?: boolean
+  image?: string
 }
 
-export default function MenuCard({ name, description, veg, jain, price, bestseller }: Props) {
+export default function MenuCard({ name, description, veg, jain, price, bestseller, image }: Props) {
   return (
-    <article className="lux-card group flex flex-col p-4 md:p-5">
-      <div className="flex items-start gap-2.5">
+    <article className="lux-card group flex flex-col !p-0 overflow-hidden relative">
+      {image && (
+        <div className="relative w-full aspect-[4/3] overflow-hidden shrink-0">
+          <img src={image} alt={name} className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105" />
+          <div className="absolute inset-0 bg-gradient-to-t from-surface/90 to-transparent pointer-events-none" />
+        </div>
+      )}
+      <div className="flex flex-col flex-1 p-4 md:p-5">
+        <div className="flex items-start gap-2.5">
         <span
           className={`mt-1.5 inline-flex h-3.5 w-3.5 shrink-0 items-center justify-center rounded-[3px] border ${
             veg ? 'border-emerald-500' : 'border-red-500'
@@ -49,6 +57,7 @@ export default function MenuCard({ name, description, veg, jain, price, bestsell
             Jain
           </span>
         )}
+      </div>
       </div>
     </article>
   )
