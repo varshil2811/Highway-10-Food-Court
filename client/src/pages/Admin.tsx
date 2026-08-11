@@ -1,8 +1,10 @@
 import { useState, useEffect, type FormEvent, useRef } from 'react'
-import { useNavigate, useLocation } from 'react-router-dom'
+import { createPortal } from 'react-dom'
+import { useNavigate, useLocation, Link } from 'react-router-dom'
 import ReservationsTab from '../components/ReservationsTab'
 import UsersTab from '../components/UsersTab'
 import { motion, AnimatePresence } from 'framer-motion'
+import { CalendarDays, Utensils, Image as ImageIcon, Star, Mail, Users as UsersIcon } from 'lucide-react'
 import Seo from '../components/Seo'
 import ExitSection from '../components/ExitSection'
 import EmailMgmtTab from '../components/EmailMgmtTab'
@@ -581,6 +583,11 @@ export default function Admin() {
             <input type="email" value={email} onChange={e => setEmail(e.target.value)} className="lux-input mb-4" placeholder="Email Address..." required />
             <input type="password" value={password} onChange={e => setPassword(e.target.value)} className="lux-input mb-4" placeholder="Password..." required />
             <button type="submit" className="btn-primary w-full">Login</button>
+            <div className="mt-6 text-center">
+              <Link to="/" className="text-sm font-semibold text-dusk-grey hover:text-route-yellow transition-colors inline-flex items-center gap-2">
+                ← Return to Website
+              </Link>
+            </div>
           </form>
         </div>
       </ExitSection>
@@ -594,16 +601,7 @@ export default function Admin() {
       <Seo title="Admin Panel" description="Highway 10 Administration" path="/admin" />
       <ExitSection exit={0} title="Administration" tone="dark" className="!pt-28 md:!pt-36">
 
-        <div className="mb-4 flex flex-col md:flex-row md:items-center justify-between gap-4 rounded-xl bg-black/20 p-4 border border-[rgba(212,175,55,0.1)]">
-          <div className="text-sm text-paper-cream">
-            Logged in as <strong className="text-route-yellow">{user?.name}</strong> ({user?.role === 'super_admin' ? 'Super Admin' : 'Stall Owner'})
-          </div>
-          <button onClick={handleLogout} className="text-xs font-semibold text-red-400 hover:text-red-300 transition-colors uppercase tracking-wider">
-            Logout
-          </button>
-        </div>
-
-        <div className="mb-10 inline-flex flex-wrap gap-2 rounded-xl bg-[rgba(212,175,55,0.03)] p-1.5 border border-[rgba(212,175,55,0.1)] shadow-inner">
+        <div className="mb-10 hidden lg:inline-flex flex-wrap gap-2 rounded-xl bg-[rgba(212,175,55,0.03)] p-1.5 border border-[rgba(212,175,55,0.1)] shadow-inner">
           <button
             onClick={() => setActiveTab('reservations')}
             className={`rounded-lg px-6 py-2.5 font-display text-xs font-semibold uppercase tracking-wider transition-all duration-300 ${activeTab === 'reservations' ? 'bg-[rgba(212,175,55,0.15)] text-route-yellow shadow-sm' : 'text-dusk-grey hover:text-paper-cream hover:bg-white/5'}`}
@@ -1004,6 +1002,66 @@ export default function Admin() {
             <UsersTab key="users" token={token} />
           )}
         </AnimatePresence>
+
+        {/* Mobile Admin Bottom Nav */}
+        {createPortal(
+          <motion.div 
+            initial={{ y: 100, opacity: 0 }}
+            animate={{ y: 0, opacity: 1 }}
+            transition={{ duration: 0.6, ease: [0.22, 1, 0.36, 1], delay: 0.2 }}
+            className="fixed bottom-4 left-2 right-2 z-50 lg:hidden"
+          >
+            <div className="mx-auto flex h-16 w-full max-w-[28rem] items-center justify-between gap-1 rounded-2xl border border-[rgba(255,255,255,0.08)] bg-surface/90 px-2 backdrop-blur-xl shadow-lux">
+              <button
+                onClick={() => setActiveTab('reservations')}
+                className={`relative flex flex-col items-center justify-center flex-1 h-[3.25rem] rounded-2xl transition-all duration-300 outline-none ${activeTab === 'reservations' ? 'bg-white/10 text-paper-cream shadow-inner' : 'text-dusk-grey hover:text-paper-cream hover:bg-white/5'}`}
+              >
+                <CalendarDays className={`mb-1 h-[1.125rem] w-[1.125rem] transition-transform duration-300 ${activeTab === 'reservations' ? 'scale-110' : ''}`} strokeWidth={activeTab === 'reservations' ? 2.5 : 2} />
+                <span className="text-[7.5px] sm:text-[9px] font-bold tracking-widest uppercase">RSRV</span>
+              </button>
+              {user?.role === 'super_admin' && (
+                <>
+                  <button
+                    onClick={() => setActiveTab('menu')}
+                    className={`relative flex flex-col items-center justify-center flex-1 h-[3.25rem] rounded-2xl transition-all duration-300 outline-none ${activeTab === 'menu' ? 'bg-white/10 text-paper-cream shadow-inner' : 'text-dusk-grey hover:text-paper-cream hover:bg-white/5'}`}
+                  >
+                    <Utensils className={`mb-1 h-[1.125rem] w-[1.125rem] transition-transform duration-300 ${activeTab === 'menu' ? 'scale-110' : ''}`} strokeWidth={activeTab === 'menu' ? 2.5 : 2} />
+                    <span className="text-[7.5px] sm:text-[9px] font-bold tracking-widest uppercase">MENU</span>
+                  </button>
+                  <button
+                    onClick={() => setActiveTab('gallery')}
+                    className={`relative flex flex-col items-center justify-center flex-1 h-[3.25rem] rounded-2xl transition-all duration-300 outline-none ${activeTab === 'gallery' ? 'bg-white/10 text-paper-cream shadow-inner' : 'text-dusk-grey hover:text-paper-cream hover:bg-white/5'}`}
+                  >
+                    <ImageIcon className={`mb-1 h-[1.125rem] w-[1.125rem] transition-transform duration-300 ${activeTab === 'gallery' ? 'scale-110' : ''}`} strokeWidth={activeTab === 'gallery' ? 2.5 : 2} />
+                    <span className="text-[7.5px] sm:text-[9px] font-bold tracking-widest uppercase">GLRY</span>
+                  </button>
+                  <button
+                    onClick={() => setActiveTab('reviews')}
+                    className={`relative flex flex-col items-center justify-center flex-1 h-[3.25rem] rounded-2xl transition-all duration-300 outline-none ${activeTab === 'reviews' ? 'bg-white/10 text-paper-cream shadow-inner' : 'text-dusk-grey hover:text-paper-cream hover:bg-white/5'}`}
+                  >
+                    <Star className={`mb-1 h-[1.125rem] w-[1.125rem] transition-transform duration-300 ${activeTab === 'reviews' ? 'scale-110' : ''}`} strokeWidth={activeTab === 'reviews' ? 2.5 : 2} />
+                    <span className="text-[7.5px] sm:text-[9px] font-bold tracking-widest uppercase">RVWS</span>
+                  </button>
+                  <button
+                    onClick={() => setActiveTab('emails')}
+                    className={`relative flex flex-col items-center justify-center flex-1 h-[3.25rem] rounded-2xl transition-all duration-300 outline-none ${activeTab === 'emails' ? 'bg-white/10 text-paper-cream shadow-inner' : 'text-dusk-grey hover:text-paper-cream hover:bg-white/5'}`}
+                  >
+                    <Mail className={`mb-1 h-[1.125rem] w-[1.125rem] transition-transform duration-300 ${activeTab === 'emails' ? 'scale-110' : ''}`} strokeWidth={activeTab === 'emails' ? 2.5 : 2} />
+                    <span className="text-[7.5px] sm:text-[9px] font-bold tracking-widest uppercase">MAIL</span>
+                  </button>
+                  <button
+                    onClick={() => setActiveTab('users')}
+                    className={`relative flex flex-col items-center justify-center flex-1 h-[3.25rem] rounded-2xl transition-all duration-300 outline-none ${activeTab === 'users' ? 'bg-white/10 text-paper-cream shadow-inner' : 'text-dusk-grey hover:text-paper-cream hover:bg-white/5'}`}
+                  >
+                    <UsersIcon className={`mb-1 h-[1.125rem] w-[1.125rem] transition-transform duration-300 ${activeTab === 'users' ? 'scale-110' : ''}`} strokeWidth={activeTab === 'users' ? 2.5 : 2} />
+                    <span className="text-[7.5px] sm:text-[9px] font-bold tracking-widest uppercase">USERS</span>
+                  </button>
+                </>
+              )}
+            </div>
+          </motion.div>,
+          document.body
+        )}
 
       </ExitSection>
     </>

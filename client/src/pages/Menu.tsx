@@ -1,7 +1,8 @@
 import { useMemo, useState, useEffect } from 'react'
 import Seo from '../components/Seo'
-import ExitSection from '../components/ExitSection'
+import ExitSection, { childVariant, staggerContainer } from '../components/ExitSection'
 import MenuCard from '../components/MenuCard'
+import { motion } from 'framer-motion'
 
 type MenuItem = {
   _id: string
@@ -69,14 +70,20 @@ export default function Menu() {
         path="/menu"
       />
 
-      <ExitSection exit={1} title="Menu" tone="light" className="!pt-28 md:!pt-36">
-        <p className="mb-8 max-w-2xl text-sm leading-relaxed text-dusk-grey">
-          Multi-brand food court — pricing may vary slightly by counter. Prices marked ₹ — until
-          counters confirm current rates.
-        </p>
+      <ExitSection exit={1} title="Menu" tone="light" className="!pt-28 md:!pt-36" disableDefaultChildAnimation>
+        <motion.div
+          variants={staggerContainer}
+          initial="hidden"
+          whileInView="show"
+          viewport={{ once: false, amount: 0.1, margin: "0px 0px -50px 0px" }}
+        >
+          <motion.p variants={childVariant} className="mb-8 max-w-2xl text-sm leading-relaxed text-dusk-grey">
+            Multi-brand food court — pricing may vary slightly by counter. Prices marked ₹ — until
+            counters confirm current rates.
+          </motion.p>
 
         {/* How ordering works */}
-        <div className="lux-card mb-10 !p-5 md:!p-6">
+        <motion.div variants={childVariant} className="lux-card mb-10 !p-5 md:!p-6">
           <h3 className="font-display text-lg font-bold tracking-tight text-paper-cream md:text-xl">
             How Ordering Works
           </h3>
@@ -93,9 +100,9 @@ export default function Menu() {
               </div>
             ))}
           </div>
-        </div>
+        </motion.div>
 
-        <div className="grid gap-8 lg:grid-cols-[240px_1fr] xl:grid-cols-[260px_1fr]">
+        <motion.div variants={childVariant} className="grid gap-8 lg:grid-cols-[240px_1fr] xl:grid-cols-[260px_1fr]">
           {/* Sidebar filters */}
           <aside className="lg:sticky lg:top-24 lg:self-start">
             <div className="lux-card !p-4 md:!p-5 hidden lg:block">
@@ -259,23 +266,31 @@ export default function Menu() {
                 </button>
               </div>
             ) : (
-              <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4">
+              <motion.div 
+                variants={staggerContainer}
+                initial="hidden"
+                whileInView="show"
+                viewport={{ once: false, amount: 0.1, margin: "0px 0px -50px 0px" }}
+                className="grid gap-3 sm:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4"
+              >
                 {filtered.map((item) => (
-                  <MenuCard
-                    key={item._id}
-                    name={item.name}
-                    description={item.description}
-                    veg={item.veg}
-                    jain={item.jain}
-                    price={item.price}
-                    bestseller={item.bestseller}
-                    image={item.image}
-                  />
+                  <motion.div variants={childVariant} key={item._id}>
+                    <MenuCard
+                      name={item.name}
+                      description={item.description}
+                      veg={item.veg}
+                      jain={item.jain}
+                      price={item.price}
+                      bestseller={item.bestseller}
+                      image={item.image}
+                    />
+                  </motion.div>
                 ))}
-              </div>
+              </motion.div>
             )}
           </div>
-        </div>
+        </motion.div>
+        </motion.div>
       </ExitSection>
     </>
   )

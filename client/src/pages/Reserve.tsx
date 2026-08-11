@@ -2,7 +2,7 @@ import { useState, useEffect, type FormEvent } from 'react'
 import { useForm } from 'react-hook-form'
 import { motion, AnimatePresence } from 'framer-motion'
 import Seo from '../components/Seo'
-import ExitSection from '../components/ExitSection'
+import ExitSection, { childVariant, staggerContainer } from '../components/ExitSection'
 import MapEmbed from '../components/MapEmbed'
 import site from '../data/site.json'
 
@@ -146,14 +146,20 @@ export default function Reserve() {
         description="Reserve a table or send a message to Highway 10 Food Court, Jamnagar. We'll call to confirm."
         path="/reserve"
       />
-      <ExitSection exit={3} title="Reserve / Contact" tone="light" className="!pt-28 md:!pt-36">
-        <p className="mb-10 max-w-2xl text-sm leading-relaxed text-dusk-grey">
+      <ExitSection exit={3} title="Reserve / Contact" tone="light" className="!pt-28 md:!pt-36" disableDefaultChildAnimation>
+        <motion.div
+          variants={staggerContainer}
+          initial="hidden"
+          whileInView="show"
+          viewport={{ once: false, amount: 0.1, margin: "0px 0px -50px 0px" }}
+        >
+        <motion.p variants={childVariant} className="mb-10 max-w-2xl text-sm leading-relaxed text-dusk-grey">
           Food court seating — we&apos;ll call to confirm your preferred time. For same-day large
           groups, WhatsApp or call works fastest.
-        </p>
+        </motion.p>
 
         <div className="grid gap-8 lg:grid-cols-2">
-          <div className="lux-card">
+          <motion.div variants={childVariant} className="lux-card">
             <h3 className="font-serif text-xl font-bold tracking-tight text-route-yellow">
               Reserve a Table
             </h3>
@@ -436,9 +442,9 @@ export default function Reserve() {
               </form>
 
             )}
-          </div>
+          </motion.div>
 
-          <div className="lux-card">
+          <motion.div variants={childVariant} className="lux-card">
             <h3 className="font-serif text-xl font-bold tracking-tight text-route-yellow">
               Contact & Feedback
             </h3>
@@ -513,13 +519,14 @@ export default function Reserve() {
                 </button>
               </form>
             )}
-          </div>
+          </motion.div>
         </div>
 
-        <div className="mt-14">
+        <motion.div variants={childVariant} className="mt-14">
           <h3 className="mb-5 font-serif text-xl font-bold tracking-tight">Location</h3>
           <MapEmbed height="h-80" />
-        </div>
+        </motion.div>
+        </motion.div>
       </ExitSection>
     </>
   )

@@ -4,6 +4,7 @@ import { motion, AnimatePresence } from 'framer-motion'
 import Navbar from './Navbar'
 import Footer from './Footer'
 import RouteLine from './RouteLine'
+import MobileBottomNav from './MobileBottomNav'
 
 export default function Layout() {
   const { pathname } = useLocation()
@@ -13,7 +14,7 @@ export default function Layout() {
   }, [pathname])
 
   return (
-    <div className="min-h-screen flex flex-col">
+    <div className="min-h-screen flex flex-col relative pb-20 lg:pb-0">
       <RouteLine />
       <Navbar />
       <AnimatePresence mode="wait">
@@ -29,6 +30,7 @@ export default function Layout() {
         </motion.main>
       </AnimatePresence>
       <Footer />
+      <MobileBottomNav />
     </div>
   )
 }

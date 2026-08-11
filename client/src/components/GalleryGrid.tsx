@@ -2,6 +2,20 @@ import { useEffect, useState } from 'react'
 import { AnimatePresence, motion, useReducedMotion } from 'framer-motion'
 import GalleryVideoCard from './GalleryVideoCard'
 
+const staggerContainer = {
+  hidden: { opacity: 0 },
+  show: {
+    opacity: 1,
+    transition: { staggerChildren: 0.1 }
+  }
+}
+
+const itemVariants = {
+  hidden: { opacity: 0, scale: 0.95 },
+  show: { opacity: 1, scale: 1, transition: { duration: 0.4, ease: [0.22, 1, 0.36, 1] } },
+  exit: { opacity: 0, scale: 0.95, transition: { duration: 0.2 } }
+}
+
 export type GalleryItem = {
   _id: string
   src: string
@@ -92,16 +106,20 @@ export default function GalleryGrid({ items, categories }: Props) {
         </div>
       </div>
 
-      <motion.div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
+      <motion.div 
+        variants={staggerContainer}
+        initial="hidden"
+        whileInView="show"
+        viewport={{ once: false, amount: 0.1, margin: "0px 0px -50px 0px" }}
+        className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3"
+      >
         <AnimatePresence>
           {displayedItems.map((item, index) => {
             const isLastVisible = !expanded && hasMore && index === 5
             return (
               <motion.button
-                initial={{ opacity: 0, scale: 0.95 }}
-                animate={{ opacity: 1, scale: 1 }}
-                exit={{ opacity: 0, scale: 0.95 }}
-                transition={{ duration: 0.3 }}
+                variants={itemVariants}
+                exit="exit"
                 key={item._id + item.category + tab + index}
                 type="button"
                 onClick={() => {

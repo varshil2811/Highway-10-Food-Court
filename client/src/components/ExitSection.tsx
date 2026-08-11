@@ -8,9 +8,10 @@ type Props = {
   id?: string
   children: ReactNode
   className?: string
+  disableDefaultChildAnimation?: boolean
 }
 
-const staggerContainer: Variants = {
+export const staggerContainer: Variants = {
   hidden: { opacity: 0 },
   show: {
     opacity: 1,
@@ -18,7 +19,7 @@ const staggerContainer: Variants = {
   }
 }
 
-const childVariant: Variants = {
+export const childVariant: Variants = {
   hidden: { opacity: 0, y: 30 },
   show: { opacity: 1, y: 0, transition: { duration: 0.6, ease: [0.22, 1, 0.36, 1] as [number, number, number, number] } }
 }
@@ -30,6 +31,7 @@ export default function ExitSection({
   id,
   children,
   className = '',
+  disableDefaultChildAnimation = false,
 }: Props) {
   const reduce = useReducedMotion()
   const isAlt = tone === 'light'
@@ -40,7 +42,7 @@ export default function ExitSection({
       variants={reduce ? undefined : staggerContainer}
       initial="hidden"
       whileInView="show"
-      viewport={{ once: true, amount: 0.12 }}
+      viewport={{ once: false, amount: 0.1, margin: "0px 0px -50px 0px" }}
       className={`relative ${isAlt ? 'bg-surface text-paper-cream' : 'bg-asphalt text-paper-cream'}`}
     >
       <div className={`mx-auto max-w-6xl px-4 py-20 md:px-8 md:py-28 md:pl-20 ${className}`}>
@@ -53,9 +55,13 @@ export default function ExitSection({
             {title}
           </h2>
         </motion.div>
-        <motion.div variants={reduce ? undefined : childVariant}>
-          {children}
-        </motion.div>
+        {disableDefaultChildAnimation ? (
+          children
+        ) : (
+          <motion.div variants={reduce ? undefined : childVariant}>
+            {children}
+          </motion.div>
+        )}
       </div>
     </motion.section>
   )

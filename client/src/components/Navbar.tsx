@@ -15,7 +15,6 @@ const links = [
 ]
 
 export default function Navbar() {
-  const [open, setOpen] = useState(false)
   const [hidden, setHidden] = useState(false)
   const [scrolled, setScrolled] = useState(false)
   const { scrollY } = useScroll()
@@ -25,7 +24,6 @@ export default function Navbar() {
     const previous = scrollY.getPrevious() || 0;
     if (latest > previous && latest > 150) {
       setHidden(true);
-      setOpen(false);
     } else {
       setHidden(false);
     }
@@ -35,11 +33,12 @@ export default function Navbar() {
   return (
     <motion.header
       variants={{
-        visible: { y: 0 },
-        hidden: { y: "-100%" },
+        visible: { y: 0, opacity: 1 },
+        hidden: { y: "-100%", opacity: 0 },
       }}
+      initial="hidden"
       animate={hidden ? "hidden" : "visible"}
-      transition={{ duration: 0.35, ease: "easeInOut" }}
+      transition={{ duration: 0.5, ease: [0.22, 1, 0.36, 1] }}
       className={`fixed top-0 w-full z-50 transition-colors duration-500 ease-out ${
         scrolled
           ? 'border-b border-[rgba(255,255,255,0.08)] bg-asphalt/60 shadow-[0_8px_32px_rgba(0,0,0,0.35)] backdrop-blur-xl'
@@ -52,7 +51,6 @@ export default function Navbar() {
             to="/" 
             className="flex items-center gap-3 group" 
             onClick={() => { 
-              setOpen(false);
               if (location.pathname === '/') {
                 window.scrollTo({ top: 0, behavior: 'smooth' });
               }
@@ -70,93 +68,53 @@ export default function Navbar() {
           </Link>
         </Magnetic>
 
-        <nav className="hidden items-center gap-7 lg:flex">
-          {links.map((l) => (
-            <Magnetic key={l.to} strength={0.2}>
-              <NavLink
-                to={l.to}
-                end={l.to === '/'}
-                className={({ isActive }) =>
-                  `nav-link px-2 py-1 ${isActive ? 'nav-link-active text-paper-cream' : ''}`
-                }
-              >
-                {l.label}
-              </NavLink>
-            </Magnetic>
-          ))}
-        </nav>
+        {(location.pathname.startsWith('/admin') || location.pathname.startsWith('/stall-admin')) ? (
+          <button 
+            onClick={() => {
+              localStorage.removeItem('token');
+              localStorage.removeItem('user');
+              window.location.href = '/login';
+            }} 
+            className="shrink-0 flex items-center gap-2 rounded-lg bg-red-500/10 px-4 py-2 text-[10px] sm:text-xs font-bold text-red-400 transition-colors hover:bg-red-500/20 uppercase tracking-wider border border-red-500/20"
+          >
+            Logout
+          </button>
+        ) : (
+          <>
+            <nav className="hidden items-center gap-7 lg:flex">
+              {links.map((l) => (
+                <Magnetic key={l.to} strength={0.2}>
+                  <NavLink
+                    to={l.to}
+                    end={l.to === '/'}
+                    className={({ isActive }) =>
+                      `nav-link px-2 py-1 ${isActive ? 'nav-link-active text-paper-cream' : ''}`
+                    }
+                  >
+                    {l.label}
+                  </NavLink>
+                </Magnetic>
+              ))}
+            </nav>
 
-        <div className="hidden items-center gap-4 md:flex">
-          <Magnetic strength={0.2}>
-            <a
-              href={`tel:${site.phoneRaw}`}
-              className="font-body text-sm text-dusk-grey transition-colors duration-300 hover:text-route-yellow px-2 py-1"
-            >
-              {site.phone}
-            </a>
-          </Magnetic>
-          <Magnetic strength={0.2}>
-            <a href={site.maps} target="_blank" rel="noreferrer" className="btn-primary !px-5 !py-2.5 !text-xs">
-              Get Directions
-            </a>
-          </Magnetic>
-        </div>
-
-        <button
-          type="button"
-          className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl border border-[rgba(212,175,55,0.2)] bg-[rgba(212,175,55,0.05)] text-paper-cream transition-all duration-300 hover:border-route-yellow hover:bg-[rgba(212,175,55,0.1)] lg:hidden"
-          aria-label={open ? 'Close menu' : 'Open menu'}
-          aria-expanded={open}
-          onClick={() => setOpen((v) => !v)}
-        >
-          {open ? (
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#F9F6F0" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-              <path d="M18 6L6 18M6 6l12 12" />
-            </svg>
-          ) : (
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#F9F6F0" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-              <path d="M4 6h16M4 12h16M4 18h16" />
-            </svg>
-          )}
-        </button>
+            <div className="hidden items-center gap-4 md:flex">
+              <Magnetic strength={0.2}>
+                <a
+                  href={`tel:${site.phoneRaw}`}
+                  className="font-body text-sm text-dusk-grey transition-colors duration-300 hover:text-route-yellow px-2 py-1"
+                >
+                  {site.phone}
+                </a>
+              </Magnetic>
+              <Magnetic strength={0.2}>
+                <a href={site.maps} target="_blank" rel="noreferrer" className="btn-primary !px-5 !py-2.5 !text-xs">
+                  Get Directions
+                </a>
+              </Magnetic>
+            </div>
+          </>
+        )}
       </div>
-
-      {open && (
-        <motion.div 
-          initial={{ opacity: 0, y: -20 }}
-          animate={{ opacity: 1, y: 0 }}
-          className="border-t border-[rgba(212,175,55,0.2)] bg-asphalt/95 px-4 py-5 backdrop-blur-xl lg:hidden shadow-2xl"
-        >
-          <nav className="flex flex-col gap-4">
-            {links.map((l) => (
-              <NavLink
-                key={l.to}
-                to={l.to}
-                end={l.to === '/'}
-                onClick={() => { setOpen(false); }}
-                className={({ isActive }) =>
-                  `font-display text-base font-semibold transition-colors ${
-                    isActive ? 'text-route-yellow' : 'text-paper-cream'
-                  }`
-                }
-              >
-                {l.label}
-              </NavLink>
-            ))}
-            <a href={`tel:${site.phoneRaw}`} className="pt-2 font-body text-sm text-route-yellow">
-              {site.phone}
-            </a>
-            <a
-              href={site.maps}
-              target="_blank"
-              rel="noreferrer"
-              className="btn-primary text-center !text-xs"
-            >
-              Get Directions
-            </a>
-          </nav>
-        </motion.div>
-      )}
     </motion.header>
   )
 }

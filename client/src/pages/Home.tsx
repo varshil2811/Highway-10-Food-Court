@@ -129,7 +129,8 @@ export default function Home() {
           <motion.div
             variants={staggerContainer}
             initial="hidden"
-            animate="show"
+            whileInView="show"
+            viewport={{ once: false, amount: 0.1, margin: "0px 0px -50px 0px" }}
             className="max-w-2xl pointer-events-auto"
           >
             <motion.p variants={fadeInUp} className="font-display text-xs font-semibold uppercase tracking-[0.32em] text-route-yellow">
@@ -160,40 +161,46 @@ export default function Home() {
 
       {/* Quick facts */}
       <div className="bg-asphalt relative z-10 -mt-8 pt-8">
-        <div className="mx-auto grid max-w-6xl grid-cols-1 gap-4 px-4 py-8 md:grid-cols-3 md:px-8 md:pl-20">
-          <div className="flex flex-col items-center justify-center rounded-[1.5rem] border border-[rgba(212,175,55,0.25)] bg-gradient-to-b from-[#1a1a1a] to-[#0f0f0f] py-8 text-center shadow-[0_8px_30px_rgba(0,0,0,0.5)]">
+        <motion.div 
+          variants={staggerContainer}
+          initial="hidden"
+          whileInView="show"
+          viewport={{ once: false, amount: 0.1, margin: "0px 0px -50px 0px" }}
+          className="mx-auto grid max-w-6xl grid-cols-1 gap-4 px-4 py-8 md:grid-cols-3 md:px-8 md:pl-20"
+        >
+          <motion.div variants={fadeInUp} className="flex flex-col items-center justify-center rounded-[1.5rem] border border-[rgba(212,175,55,0.25)] bg-gradient-to-b from-[#1a1a1a] to-[#0f0f0f] py-8 text-center shadow-[0_8px_30px_rgba(0,0,0,0.5)]">
             <div className="font-display text-2xl font-bold tracking-tight text-paper-cream">
               ★ {site.rating}
             </div>
             <div className="mt-2 font-display text-[11px] font-semibold uppercase tracking-[0.2em] text-dusk-grey">
               {site.reviewCount.toLocaleString()} Reviews
             </div>
-          </div>
+          </motion.div>
 
-          <div className="flex flex-col items-center justify-center rounded-[1.5rem] border border-[rgba(212,175,55,0.45)] bg-gradient-to-b from-[#1a1a1a] to-[#0f0f0f] py-8 text-center shadow-[0_8px_30px_rgba(0,0,0,0.5)]">
+          <motion.div variants={fadeInUp} className="flex flex-col items-center justify-center rounded-[1.5rem] border border-[rgba(212,175,55,0.45)] bg-gradient-to-b from-[#1a1a1a] to-[#0f0f0f] py-8 text-center shadow-[0_8px_30px_rgba(0,0,0,0.5)]">
             <div className="font-display text-2xl font-bold tracking-tight text-paper-cream">
               11 AM – 1 AM
             </div>
             <div className="mt-2 font-display text-[11px] font-semibold uppercase tracking-[0.2em] text-route-yellow">
               {open ? 'Open Now' : 'Open Daily'}
             </div>
-          </div>
+          </motion.div>
 
-          <div className="flex flex-col items-center justify-center rounded-[1.5rem] border border-[rgba(212,175,55,0.25)] bg-gradient-to-b from-[#1a1a1a] to-[#0f0f0f] py-8 text-center shadow-[0_8px_30px_rgba(0,0,0,0.5)]">
+          <motion.div variants={fadeInUp} className="flex flex-col items-center justify-center rounded-[1.5rem] border border-[rgba(212,175,55,0.25)] bg-gradient-to-b from-[#1a1a1a] to-[#0f0f0f] py-8 text-center shadow-[0_8px_30px_rgba(0,0,0,0.5)]">
             <div className="font-display text-xl font-bold tracking-tight text-paper-cream">
               Dine-In
             </div>
             <div className="mt-2 font-display text-[11px] font-semibold uppercase tracking-[0.2em] text-dusk-grey">
               Family Friendly
             </div>
-          </div>
-        </div>
+          </motion.div>
+        </motion.div>
       </div>
 
-      <ExitSection exit={0} title="Why Stop Here" tone="light" id="why">
+      <ExitSection exit={0} title="Why Stop Here" tone="light" id="why" disableDefaultChildAnimation>
         <div className="grid gap-5 md:grid-cols-3">
           {reasons.map((r) => (
-            <article key={r.title} className="lux-card group">
+            <motion.article variants={fadeInUp} key={r.title} className="lux-card group">
               <div className="mb-4 inline-flex h-12 w-12 items-center justify-center rounded-2xl bg-[rgba(212,175,55,0.15)] text-route-yellow transition-transform duration-500 group-hover:scale-110 group-hover:rotate-6">
                 {r.icon}
               </div>
@@ -201,40 +208,43 @@ export default function Home() {
                 {r.title}
               </h3>
               <p className="mt-3 text-sm leading-relaxed text-dusk-grey">{r.body}</p>
-            </article>
+            </motion.article>
           ))}
         </div>
       </ExitSection>
 
-      <ExitSection exit={0} title="Along the Route" tone="dark" id="teaser">
-        <p className="mb-8 max-w-lg text-sm leading-relaxed text-dusk-grey">
+      <ExitSection exit={0} title="Along the Route" tone="dark" id="teaser" disableDefaultChildAnimation>
+        <motion.p variants={fadeInUp} className="mb-8 max-w-lg text-sm leading-relaxed text-dusk-grey">
           Ambience from dusk to late night — a preview of the full gallery.
-        </p>
+        </motion.p>
         <div className="grid grid-cols-2 gap-4 md:grid-cols-3">
           {featuredImages.map((g) => (
-            <Link
-              key={g._id}
-              to="/gallery"
-              className="group relative aspect-[4/3] overflow-hidden rounded-[1.125rem] border border-[rgba(212,175,55,0.2)] shadow-[0_12px_40px_rgba(0,0,0,0.45)] transition-all duration-500 hover:scale-[1.02] hover:border-route-yellow hover:shadow-[0_8px_28px_rgba(212,175,55,0.28)]"
-            >
-              <img
-                src={g.src}
-                alt={g.alt}
-                className="h-full w-full object-cover transition duration-700 group-hover:scale-110"
-                loading="lazy"
-              />
-              <div className="absolute inset-0 bg-asphalt/0 transition duration-500 group-hover:bg-asphalt/30" />
-            </Link>
+            <motion.div variants={fadeInUp} key={g._id}>
+              <Link
+                to="/gallery"
+                className="block h-full group relative aspect-[4/3] overflow-hidden rounded-[1.125rem] border border-[rgba(212,175,55,0.2)] shadow-[0_12px_40px_rgba(0,0,0,0.45)] transition-all duration-500 hover:scale-[1.02] hover:border-route-yellow hover:shadow-[0_8px_28px_rgba(212,175,55,0.28)]"
+              >
+                <img
+                  src={g.src}
+                  alt={g.alt}
+                  className="h-full w-full object-cover transition duration-700 group-hover:scale-110"
+                  loading="lazy"
+                />
+                <div className="absolute inset-0 bg-asphalt/0 transition duration-500 group-hover:bg-asphalt/30" />
+              </Link>
+            </motion.div>
           ))}
         </div>
-        <Magnetic strength={0.15} className="mt-10">
-          <Link
-            to="/gallery"
-            className="inline-block font-display text-xs font-semibold uppercase tracking-[0.18em] text-route-yellow transition-opacity hover:opacity-80"
-          >
-            Open full gallery →
-          </Link>
-        </Magnetic>
+        <motion.div variants={fadeInUp} className="mt-10">
+          <Magnetic strength={0.15}>
+            <Link
+              to="/gallery"
+              className="inline-block font-display text-xs font-semibold uppercase tracking-[0.18em] text-route-yellow transition-opacity hover:opacity-80"
+            >
+              Open full gallery →
+            </Link>
+          </Magnetic>
+        </motion.div>
       </ExitSection>
 
       <ExitSection exit={0} title="Word on the Road" tone="light">

@@ -1,7 +1,7 @@
 import { useState, useEffect, type FormEvent } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import Seo from '../components/Seo'
-import ExitSection from '../components/ExitSection'
+import ExitSection, { childVariant, staggerContainer } from '../components/ExitSection'
 import TestimonialCard from '../components/TestimonialCard'
 import site from '../data/site.json'
 
@@ -76,8 +76,14 @@ export default function Reviews() {
         description={`★ ${site.rating} from ${site.reviewCount.toLocaleString()} reviews — what visitors say about Highway 10 Food Court, Jamnagar.`}
         path="/reviews"
       />
-      <ExitSection exit={5} title="Reviews" tone="light" className="!pt-28 md:!pt-36 relative">
-        <div className="lux-card mb-10 flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
+      <ExitSection exit={5} title="Reviews" tone="light" className="!pt-28 md:!pt-36 relative" disableDefaultChildAnimation>
+        <motion.div
+          variants={staggerContainer}
+          initial="hidden"
+          whileInView="show"
+          viewport={{ once: false, amount: 0.1, margin: "0px 0px -50px 0px" }}
+        >
+        <motion.div variants={childVariant} className="lux-card mb-10 flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
           <div>
             <div className="font-serif text-5xl font-bold tracking-tight text-route-yellow">
               ★ {site.rating}
@@ -95,14 +101,16 @@ export default function Reviews() {
               See all on Google
             </a>
           </div>
-        </div>
+        </motion.div>
 
         {loading ? (
           <div className="text-center py-10 text-dusk-grey">Loading reviews...</div>
         ) : (
           <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
             {reviews.map((t) => (
-              <TestimonialCard key={t._id} quote={t.quote} name={t.name} meta={t.meta} />
+              <motion.div variants={childVariant} key={t._id}>
+                <TestimonialCard quote={t.quote} name={t.name} meta={t.meta} />
+              </motion.div>
             ))}
             {reviews.length === 0 && (
               <div className="col-span-full text-center py-10 text-dusk-grey">
@@ -111,7 +119,7 @@ export default function Reviews() {
             )}
           </div>
         )}
-
+        </motion.div>
       </ExitSection>
 
       <AnimatePresence>
