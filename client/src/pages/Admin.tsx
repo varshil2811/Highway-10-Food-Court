@@ -554,7 +554,7 @@ export default function Admin() {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
-          'x-admin-password': password
+          'Authorization': `Bearer ${token}`
         },
         body: JSON.stringify({ homePosition: newPos })
       })
