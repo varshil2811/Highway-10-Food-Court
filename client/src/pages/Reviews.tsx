@@ -106,7 +106,13 @@ export default function Reviews() {
         {loading ? (
           <div className="text-center py-10 text-dusk-grey">Loading reviews...</div>
         ) : (
-          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+          <motion.div 
+            variants={staggerContainer}
+            initial="hidden"
+            whileInView="show"
+            viewport={{ once: false, amount: 0.1 }}
+            className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3"
+          >
             {reviews.map((t) => (
               <motion.div variants={childVariant} key={t._id}>
                 <TestimonialCard quote={t.quote} name={t.name} meta={t.meta} />
@@ -117,7 +123,7 @@ export default function Reviews() {
                 No reviews found. Be the first to write one!
               </div>
             )}
-          </div>
+          </motion.div>
         )}
         </motion.div>
       </ExitSection>

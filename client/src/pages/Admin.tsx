@@ -217,6 +217,11 @@ export default function Admin() {
     return () => clearInterval(interval)
   }, [isAuthenticated, activeTab])
 
+  // Scroll to top when tab changes
+  useEffect(() => {
+    window.scrollTo({ top: 0, behavior: 'smooth' })
+  }, [activeTab])
+
   // --- MENU LOGIC ---
   async function fetchMenu() {
     try {
