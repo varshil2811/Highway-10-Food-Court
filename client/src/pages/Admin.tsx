@@ -606,6 +606,12 @@ export default function Admin() {
       <Seo title="Admin Panel" description="Highway 10 Administration" path="/admin" />
       <ExitSection exit={0} title="Administration" tone="dark" className="!pt-28 md:!pt-36">
 
+        <div className="mb-6 flex justify-end">
+          <button onClick={handleLogout} className="rounded-lg bg-red-500/10 px-4 py-2 text-xs font-semibold text-red-400 hover:bg-red-500/20 transition-all duration-300">
+            Logout
+          </button>
+        </div>
+
         <div className="mb-10 hidden lg:inline-flex flex-wrap gap-2 rounded-xl bg-[rgba(212,175,55,0.03)] p-1.5 border border-[rgba(212,175,55,0.1)] shadow-inner">
           <button
             onClick={() => setActiveTab('reservations')}
