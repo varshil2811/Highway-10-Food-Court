@@ -2,7 +2,7 @@ import { useMemo, useState, useEffect } from 'react'
 import Seo from '../components/Seo'
 import ExitSection, { childVariant, staggerContainer } from '../components/ExitSection'
 import MenuCard from '../components/MenuCard'
-import { motion } from 'framer-motion'
+import { motion, AnimatePresence } from 'framer-motion'
 
 type MenuItem = {
   _id: string
@@ -33,6 +33,7 @@ export default function Menu() {
   const [stalls, setStalls] = useState<MetadataItem[]>([{ id: 'all', name: 'All Stalls' }])
   const [categories, setCategories] = useState<MetadataItem[]>([{ id: 'all', name: 'All Categories' }])
   const [loading, setLoading] = useState(true)
+  const [selectedItem, setSelectedItem] = useState<MenuItem | null>(null)
 
   useEffect(() => {
     Promise.all([
@@ -75,7 +76,7 @@ export default function Menu() {
           variants={staggerContainer}
           initial="hidden"
           whileInView="show"
-          viewport={{ once: false, amount: 0.1, margin: "0px 0px -50px 0px" }}
+          viewport={{ once: false, amount: "some", margin: "0px 0px -50px 0px" }}
         >
           <motion.p variants={childVariant} className="mb-8 max-w-2xl text-sm leading-relaxed text-dusk-grey">
             Multi-brand food court — pricing may vary slightly by counter. Prices marked ₹ — until
@@ -267,14 +268,15 @@ export default function Menu() {
               </div>
             ) : (
               <motion.div 
+                key={`${stall}-${category}`}
                 variants={staggerContainer}
                 initial="hidden"
                 whileInView="show"
-                viewport={{ once: false, amount: 0.1, margin: "0px 0px -50px 0px" }}
-                className="grid gap-3 sm:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4"
+                viewport={{ once: true, amount: "some", margin: "0px 0px -50px 0px" }}
+                className="grid gap-4 md:grid-cols-2 xl:grid-cols-2 2xl:grid-cols-3"
               >
                 {filtered.map((item) => (
-                  <motion.div variants={childVariant} key={item._id}>
+                  <motion.div variants={childVariant} key={item._id} className="h-full">
                     <MenuCard
                       name={item.name}
                       description={item.description}
@@ -283,6 +285,7 @@ export default function Menu() {
                       price={item.price}
                       bestseller={item.bestseller}
                       image={item.image}
+                      onClick={() => setSelectedItem(item)}
                     />
                   </motion.div>
                 ))}
@@ -292,6 +295,101 @@ export default function Menu() {
         </motion.div>
         </motion.div>
       </ExitSection>
+
+      <AnimatePresence>
+        {selectedItem && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 z-[100] flex items-center justify-center p-4 sm:p-6 bg-ink/80 backdrop-blur-sm"
+            onClick={() => setSelectedItem(null)}
+          >
+            <motion.div
+              initial={{ opacity: 0, scale: 0.95, y: 20 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.95, y: 20 }}
+              transition={{ type: 'spring', damping: 25, stiffness: 300 }}
+              onClick={(e) => e.stopPropagation()}
+              className="w-full max-w-lg overflow-hidden rounded-2xl bg-surface shadow-2xl border border-[rgba(212,175,55,0.15)] flex flex-col max-h-full"
+            >
+              {selectedItem.image && (
+                <div className="relative aspect-[4/3] w-full shrink-0">
+                  <img src={selectedItem.image} alt={selectedItem.name} className="h-full w-full object-cover" />
+                  <div className="absolute inset-0 bg-gradient-to-t from-surface via-transparent to-transparent" />
+                  <button
+                    onClick={() => setSelectedItem(null)}
+                    className="absolute top-4 right-4 flex h-8 w-8 items-center justify-center rounded-full bg-ink/60 text-paper-cream backdrop-blur transition-colors hover:bg-ink hover:text-route-yellow"
+                  >
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+                  </button>
+                </div>
+              )}
+              
+              <div className="flex-1 overflow-y-auto p-6 md:p-8">
+                {!selectedItem.image && (
+                  <div className="mb-6 flex justify-end">
+                    <button
+                      onClick={() => setSelectedItem(null)}
+                      className="flex h-8 w-8 items-center justify-center rounded-full bg-[rgba(212,175,55,0.1)] text-dusk-grey transition-colors hover:bg-[rgba(212,175,55,0.2)] hover:text-route-yellow"
+                    >
+                      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+                    </button>
+                  </div>
+                )}
+                
+                <div className="flex items-start gap-3 md:gap-4">
+                  <span
+                    className={`mt-2 inline-flex h-4 w-4 shrink-0 items-center justify-center rounded-[3px] border ${
+                      selectedItem.veg ? 'border-emerald-500' : 'border-red-500'
+                    }`}
+                  >
+                    <span className={`h-2 w-2 rounded-full ${selectedItem.veg ? 'bg-emerald-500' : 'bg-red-500'}`} />
+                  </span>
+                  
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-start justify-between gap-4">
+                      <h2 className="font-serif text-2xl font-bold tracking-tight text-paper-cream md:text-3xl">
+                        {selectedItem.name}
+                      </h2>
+                      <span className="shrink-0 font-body text-xl font-bold text-route-yellow mt-0.5">{selectedItem.price}</span>
+                    </div>
+                    
+                    <div className="mt-2.5 flex flex-wrap items-center gap-2">
+                      <span className="text-xs font-semibold uppercase tracking-wider text-dusk-grey">
+                        {stalls.find((s) => s.id === selectedItem.stall)?.name || selectedItem.stall}
+                      </span>
+                      <span className="text-[rgba(212,175,55,0.5)]">•</span>
+                      <span className="text-xs uppercase tracking-wider text-dusk-grey">
+                        {categories.find((c) => c.id === selectedItem.category)?.name || selectedItem.category}
+                      </span>
+                    </div>
+
+                    {selectedItem.description && (
+                      <p className="mt-5 text-sm leading-relaxed text-dusk-grey md:text-base">
+                        {selectedItem.description}
+                      </p>
+                    )}
+                  </div>
+                </div>
+
+                <div className="mt-8 flex flex-wrap items-center gap-2.5 border-t border-[rgba(212,175,55,0.1)] pt-6">
+                  {selectedItem.bestseller && (
+                    <span className="inline-flex items-center gap-1.5 rounded-full border border-[rgba(212,175,55,0.35)] bg-[rgba(212,175,55,0.1)] px-3 py-1.5 font-display text-[11px] font-semibold uppercase tracking-[0.12em] text-route-yellow shadow-[0_0_15px_rgba(212,175,55,0.15)]">
+                      <span aria-hidden className="text-[13px]">★</span> Bestseller
+                    </span>
+                  )}
+                  {selectedItem.jain && (
+                    <span className="rounded-full border border-[rgba(212,175,55,0.2)] px-3 py-1.5 font-body text-[11px] font-medium uppercase tracking-wider text-dusk-grey">
+                      Jain
+                    </span>
+                  )}
+                </div>
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </>
   )
 }

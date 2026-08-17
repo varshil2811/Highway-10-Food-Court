@@ -6,11 +6,15 @@ type Props = {
   price: string
   bestseller?: boolean
   image?: string
+  onClick?: () => void
 }
 
-export default function MenuCard({ name, description, veg, jain, price, bestseller, image }: Props) {
+export default function MenuCard({ name, description, veg, jain, price, bestseller, image, onClick }: Props) {
   return (
-    <article className="lux-card group flex flex-col !p-0 overflow-hidden relative">
+    <article 
+      onClick={onClick}
+      className={`lux-card group flex flex-col !p-0 overflow-hidden relative h-full ${onClick ? 'cursor-pointer hover:border-[rgba(212,175,55,0.5)] transition-colors' : ''}`}
+    >
       {image && (
         <div className="relative w-full aspect-[4/3] overflow-hidden shrink-0">
           <img src={image} alt={name} className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105" />
@@ -32,11 +36,11 @@ export default function MenuCard({ name, description, veg, jain, price, bestsell
         </span>
 
         <div className="min-w-0 flex-1">
-          <div className="flex items-start justify-between gap-3">
-            <h3 className="font-display text-base font-bold leading-snug tracking-tight text-paper-cream md:text-lg break-words">
+          <div className="flex items-start justify-between gap-3 w-full">
+            <h3 className="flex-1 min-w-0 font-display text-base font-bold leading-snug tracking-tight text-paper-cream md:text-lg">
               {name}
             </h3>
-            <span className="shrink-0 font-body text-sm font-semibold text-route-yellow whitespace-nowrap">{price}</span>
+            <span className="shrink-0 font-body text-sm font-semibold text-route-yellow whitespace-nowrap mt-0.5">{price}</span>
           </div>
           {description && (
             <p className="mt-1.5 line-clamp-2 text-xs leading-relaxed text-dusk-grey md:text-sm">

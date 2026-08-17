@@ -42,7 +42,7 @@ export default function ExitSection({
       variants={reduce ? undefined : staggerContainer}
       initial="hidden"
       whileInView="show"
-      viewport={{ once: false, amount: 0.1, margin: "0px 0px -50px 0px" }}
+      viewport={{ once: false, amount: "some", margin: "0px 0px -50px 0px" }}
       className={`relative ${isAlt ? 'bg-surface text-paper-cream' : 'bg-asphalt text-paper-cream'}`}
     >
       <div className={`mx-auto max-w-6xl px-4 py-20 md:px-8 md:py-28 md:pl-20 ${className}`}>
